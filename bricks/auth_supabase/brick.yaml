@@ -1,0 +1,9 @@
+name: auth_supabase
+description: Supabase Authentication Feature for Flutter Clean Architecture
+version: 0.1.0+1
+
+vars:
+  backend_type:
+    type: string
+    default: supabase
+    description: Backend type (supabase)

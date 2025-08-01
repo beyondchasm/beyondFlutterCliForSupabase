@@ -1,0 +1,9 @@
+name: auth_rest_api
+description: REST API Authentication Feature for Flutter Clean Architecture
+version: 0.1.0+1
+
+vars:
+  backend_type:
+    type: string
+    default: rest-api
+    description: Backend type (rest-api)

@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'route_names.dart';
+import '../screens/splash_screen.dart';
+import '../screens/home_screen.dart';
 
 class AppRouter {
   static final GlobalKey<NavigatorState> _rootNavigatorKey = GlobalKey<NavigatorState>();
@@ -99,39 +101,11 @@ class AppRouter {
     // Error Handler
     errorBuilder: (context, state) => ErrorScreen(error: state.error),
 
-    // Redirect Logic
+    // Redirect Logic - Simplified for initial demo
     redirect: (context, state) {
-      final isLoggedIn = false; // TODO: Get from auth service
-      final isOnboarding = false; // TODO: Get from preferences
-
-      // Handle authentication
-      if (!isLoggedIn) {
-        if (state.matchedLocation == RouteNames.splash ||
-            state.matchedLocation == RouteNames.login ||
-            state.matchedLocation == RouteNames.register ||
-            state.matchedLocation == RouteNames.forgotPassword) {
-          return null; // Allow access to auth screens
-        }
-        return RouteNames.login;
-      }
-
-      // Handle onboarding
-      if (isLoggedIn && !isOnboarding) {
-        if (state.matchedLocation == RouteNames.onboarding) {
-          return null;
-        }
-        return RouteNames.onboarding;
-      }
-
-      // Redirect from auth screens to home if already logged in
-      if (isLoggedIn && 
-          (state.matchedLocation == RouteNames.splash ||
-           state.matchedLocation == RouteNames.login ||
-           state.matchedLocation == RouteNames.register)) {
-        return RouteNames.home;
-      }
-
-      return null; // No redirect needed
+      // For demo purposes, allow access to all screens
+      // TODO: Implement proper authentication logic when auth feature is added
+      return null;
     },
   );
 
@@ -211,16 +185,6 @@ class AppRouter {
 }
 
 // Placeholder Screens (these should be replaced with actual implementations)
-class SplashScreen extends StatelessWidget {
-  const SplashScreen({super.key});
-  
-  @override
-  Widget build(BuildContext context) {
-    return const Scaffold(
-      body: Center(child: Text('Splash Screen')),
-    );
-  }
-}
 
 class LoginScreen extends StatelessWidget {
   const LoginScreen({super.key});
@@ -284,16 +248,6 @@ class MainShell extends StatelessWidget {
   }
 }
 
-class HomeScreen extends StatelessWidget {
-  const HomeScreen({super.key});
-  
-  @override
-  Widget build(BuildContext context) {
-    return const Scaffold(
-      body: Center(child: Text('Home Screen')),
-    );
-  }
-}
 
 class HomeDetailsScreen extends StatelessWidget {
   final String id;

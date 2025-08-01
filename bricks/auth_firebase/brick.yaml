@@ -1,0 +1,9 @@
+name: auth_firebase
+description: Firebase Authentication Feature for Flutter Clean Architecture
+version: 0.1.0+1
+
+vars:
+  backend_type:
+    type: string
+    default: firebase
+    description: Backend type (firebase)

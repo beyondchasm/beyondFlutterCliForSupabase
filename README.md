@@ -4,14 +4,17 @@ Flutter Clean Architecture 프로젝트를 위한 강력한 CLI 도구입니다.
 
 ## 🚀 주요 기능
 
-- **프로젝트 스캐폴드**: Clean Architecture 기반의 완전한 프로젝트 구조 생성
-- **다양한 백엔드 지원**: Firebase, Supabase, REST API 선택 가능
-- **Feature 생성기**: Data, Domain, Presentation 레이어를 포함한 완전한 기능 모듈 생성
-- **Freezed 통합**: 불변 클래스와 JSON 직렬화 자동 생성
-- **자동 DI 등록**: 생성된 기능이 자동으로 의존성 주입 시스템에 등록
-- **중앙집중식 관리**: 테마, 라우팅, 설정을 Core 모듈에서 통합 관리
-- **GoRouter 통합**: 선언적 라우팅과 타입 안전성 제공
-- **Material Design 3**: 최신 디자인 시스템 적용
+- **🏗️ 프로젝트 스캐폴드**: Clean Architecture 기반의 완전한 프로젝트 구조 생성
+- **🔥 다양한 백엔드 지원**: Firebase, Supabase, REST API 선택 가능
+- **⚡ 즉시 실행 가능**: Splash, Home 화면이 포함된 바로 실행 가능한 앱 생성
+- **🔐 내장 인증 시스템**: `--with-auth` 플래그로 완전한 로그인/회원가입 시스템 자동 생성
+- **👤 사용자 프로필**: `--with-user` 플래그로 사용자 관리 기능 자동 생성
+- **🧩 Feature 생성기**: Data, Domain, Presentation 레이어를 포함한 완전한 기능 모듈 생성
+- **❄️ Freezed 통합**: 불변 클래스와 JSON 직렬화 자동 생성
+- **🔧 자동 DI 등록**: 생성된 기능이 자동으로 의존성 주입 시스템에 등록
+- **🎨 중앙집중식 관리**: 테마, 라우팅, 설정을 Core 모듈에서 통합 관리
+- **🗺️ GoRouter 통합**: 선언적 라우팅과 타입 안전성 제공
+- **💎 Material Design 3**: 최신 디자인 시스템 적용
 
 ## 📦 설치
 
@@ -54,6 +57,37 @@ dart run path/to/beyond_flutter_cli/bin/beyond_flutter_cli.dart scaffold --backe
 # 또는 백엔드 옵션 생략
 dart run path/to/beyond_flutter_cli/bin/beyond_flutter_cli.dart scaffold
 ```
+
+### 1-1. 📱 즉시 실행 가능한 앱 생성
+
+**NEW!** 이제 기본 기능들과 함께 바로 실행 가능한 앱을 생성할 수 있습니다:
+
+#### 🔐 인증 기능 포함
+```bash
+# Firebase + 인증
+dart run beyond_flutter_cli.dart scaffold --backend firebase --with-auth
+
+# Supabase + 인증  
+dart run beyond_flutter_cli.dart scaffold --backend supabase --with-auth
+
+# REST API + 인증
+dart run beyond_flutter_cli.dart scaffold --backend rest-api --with-auth
+```
+
+#### 👤 사용자 프로필 기능 포함
+```bash
+# Firebase + 사용자 프로필
+dart run beyond_flutter_cli.dart scaffold --backend firebase --with-user
+
+# 인증 + 사용자 프로필 모두 포함
+dart run beyond_flutter_cli.dart scaffold --backend firebase --with-auth --with-user
+```
+
+#### 🎨 포함되는 기본 화면들
+- **Splash Screen**: 애니메이션이 포함된 로딩 화면
+- **Home Screen**: 완전한 Material Design 3 홈 화면
+- **Login/Register/ForgotPassword**: 인증 기능 선택 시 자동 생성
+- **Profile/Edit Profile**: 사용자 기능 선택 시 자동 생성
 
 이 명령어는 다음 구조를 생성합니다:
 

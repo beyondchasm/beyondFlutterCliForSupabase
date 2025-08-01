@@ -29,6 +29,16 @@ ArgParser buildParser() {
           allowed: ['firebase', 'supabase', 'rest-api'],
           defaultsTo: 'rest-api',
           help: 'Backend type to use (firebase, supabase, rest-api)',
+        )
+        ..addFlag(
+          'with-auth',
+          negatable: false,
+          help: 'Include authentication feature (login, register, logout)',
+        )
+        ..addFlag(
+          'with-user',
+          negatable: false,
+          help: 'Include user profile feature (view, edit profile)',
         ),
     )
     ..addCommand(
@@ -70,10 +80,12 @@ void printUsage(ArgParser argParser) {
   );
 }
 
-Future<void> runScaffoldCommand(String backendType, bool verbose) async {
+Future<void> runScaffoldCommand(String backendType, bool withAuth, bool withUser, bool verbose) async {
   try {
+    // Generate base scaffold
     final brickPath = path.join(
-      Directory.current.path,
+      path.dirname(Platform.script.toFilePath()),
+      '..',
       'bricks',
       'project_scaffold_${backendType.replaceAll('-', '_')}',
     );
@@ -82,11 +94,15 @@ Future<void> runScaffoldCommand(String backendType, bool verbose) async {
 
     if (verbose) {
       print('[VERBOSE] Creating project scaffold with $backendType backend...');
+      if (withAuth) print('[VERBOSE] Including auth feature...');
+      if (withUser) print('[VERBOSE] Including user feature...');
     }
 
     final target = DirectoryGeneratorTarget(Directory.current);
     await generator.generate(target, vars: <String, dynamic>{
       'backend_type': backendType,
+      'with_auth': withAuth,
+      'with_user': withUser,
     });
 
     print('✅ Project scaffold created successfully with $backendType backend!');
@@ -94,10 +110,91 @@ Future<void> runScaffoldCommand(String backendType, bool verbose) async {
     print('   - lib/core/');
     print('   - lib/features/');
     print('   - lib/main/init_app.dart');
+    print('   - Splash & Home screens included');
     print('🔧 Backend type: $backendType');
+
+    // Generate optional features
+    if (withAuth) {
+      await _generateFeature('auth', backendType, verbose);
+    }
+    
+    if (withUser) {
+      await _generateFeature('user', backendType, verbose);
+    }
+
+    print('');
+    print('🚀 Ready to start! Run the following commands:');
+    print('   flutter pub get');
+    print('   dart run build_runner build');
+    print('   flutter run');
+    
   } catch (e) {
     print('❌ Error creating scaffold: $e');
     exit(1);
+  }
+}
+
+Future<void> _generateFeature(String featureName, String backendType, bool verbose) async {
+  try {
+    String brickPath;
+    
+    // Use specific bricks for auth and user features
+    if (featureName == 'auth') {
+      brickPath = path.join(path.dirname(Platform.script.toFilePath()), '..', 'bricks', 'auth_${backendType.replaceAll('-', '_')}');
+    } else if (featureName == 'user') {
+      brickPath = path.join(path.dirname(Platform.script.toFilePath()), '..', 'bricks', 'user_${backendType.replaceAll('-', '_')}');
+    } else {
+      // Use generic feature brick for other features
+      brickPath = path.join(path.dirname(Platform.script.toFilePath()), '..', 'bricks', 'feature_${backendType.replaceAll('-', '_')}');
+    }
+    
+    final brick = Brick.path(brickPath);
+    final generator = await MasonGenerator.fromBrick(brick);
+
+    if (verbose) {
+      print('[VERBOSE] Generating $featureName feature...');
+    }
+
+    final target = DirectoryGeneratorTarget(Directory.current);
+    await generator.generate(
+      target,
+      vars: <String, dynamic>{
+        'feature_name': featureName,
+        'backend_type': backendType,
+      },
+    );
+
+    print('✅ $featureName feature created');
+
+    // Run DI registration hook if it exists
+    final hookPath = path.join(
+      path.dirname(Platform.script.toFilePath()),
+      '..',
+      'bricks',
+      featureName == 'auth' ? 'auth_${backendType.replaceAll('-', '_')}' :
+      featureName == 'user' ? 'user_${backendType.replaceAll('-', '_')}' :
+      'feature_${backendType.replaceAll('-', '_')}',
+      '__brick__',
+      'hooks',
+      'register_di.sh',
+    );
+    
+    if (await File(hookPath).exists()) {
+      if (verbose) {
+        print('[VERBOSE] Running DI registration hook for $featureName...');
+      }
+
+      final result = await Process.run('bash', [hookPath]);
+      if (result.exitCode == 0) {
+        print('✅ $featureName DI registration completed');
+      } else {
+        if (verbose) {
+          print('⚠️  $featureName DI registration hook failed: ${result.stderr}');
+        }
+      }
+    }
+  } catch (e) {
+    print('⚠️  Error creating $featureName feature: $e');
   }
 }
 
@@ -183,7 +280,9 @@ void main(List<String> arguments) async {
     // Handle commands
     if (results.command?.name == 'scaffold') {
       final backendType = results.command!['backend'] as String;
-      await runScaffoldCommand(backendType, verbose);
+      final withAuth = results.command!.flag('with-auth');
+      final withUser = results.command!.flag('with-user');
+      await runScaffoldCommand(backendType, withAuth, withUser, verbose);
       return;
     }
 
