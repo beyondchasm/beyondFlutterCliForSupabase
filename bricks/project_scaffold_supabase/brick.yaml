@@ -1,0 +1,5 @@
+name: project_scaffold
+description: Flutter 앱의 lib/core, lib/features, lib/main 구조를 만들어 줍니다
+version: 0.1.0+1
+environment:
+  mason: ^0.1.0

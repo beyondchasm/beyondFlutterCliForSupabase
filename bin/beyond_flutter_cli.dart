@@ -20,8 +20,28 @@ ArgParser buildParser() {
       help: 'Show additional command output.',
     )
     ..addFlag('version', negatable: false, help: 'Print the tool version.')
-    ..addCommand('scaffold')
-    ..addCommand('feature');
+    ..addCommand(
+      'scaffold',
+      ArgParser()
+        ..addOption(
+          'backend',
+          abbr: 'b',
+          allowed: ['firebase', 'supabase', 'rest-api'],
+          defaultsTo: 'rest-api',
+          help: 'Backend type to use (firebase, supabase, rest-api)',
+        ),
+    )
+    ..addCommand(
+      'feature',
+      ArgParser()
+        ..addOption(
+          'backend',
+          abbr: 'b',
+          allowed: ['firebase', 'supabase', 'rest-api'],
+          defaultsTo: 'rest-api',
+          help: 'Backend type to use (firebase, supabase, rest-api)',
+        ),
+    );
 }
 
 void printUsage(ArgParser argParser) {
@@ -35,6 +55,13 @@ void printUsage(ArgParser argParser) {
   );
   print('  feature     Generate a new feature with Clean Architecture layers');
   print('');
+  print('Backend options:');
+  print('  --backend, -b    Backend type: firebase, supabase, rest-api (default: rest-api)');
+  print('');
+  print('Examples:');
+  print('  beyond_flutter_cli scaffold --backend firebase');
+  print('  beyond_flutter_cli feature user_profile --backend supabase');
+  print('');
   print('Global options:');
   print(argParser.usage);
   print('');
@@ -43,63 +70,70 @@ void printUsage(ArgParser argParser) {
   );
 }
 
-Future<void> runScaffoldCommand(bool verbose) async {
+Future<void> runScaffoldCommand(String backendType, bool verbose) async {
   try {
     final brickPath = path.join(
       Directory.current.path,
       'bricks',
-      'project_scaffold',
+      'project_scaffold_${backendType.replaceAll('-', '_')}',
     );
     final brick = Brick.path(brickPath);
     final generator = await MasonGenerator.fromBrick(brick);
 
     if (verbose) {
-      print('[VERBOSE] Creating project scaffold...');
+      print('[VERBOSE] Creating project scaffold with $backendType backend...');
     }
 
     final target = DirectoryGeneratorTarget(Directory.current);
-    await generator.generate(target, vars: <String, dynamic>{});
+    await generator.generate(target, vars: <String, dynamic>{
+      'backend_type': backendType,
+    });
 
-    print('✅ Project scaffold created successfully!');
+    print('✅ Project scaffold created successfully with $backendType backend!');
     print('📁 Created directories:');
     print('   - lib/core/');
     print('   - lib/features/');
     print('   - lib/main/init_app.dart');
+    print('🔧 Backend type: $backendType');
   } catch (e) {
     print('❌ Error creating scaffold: $e');
     exit(1);
   }
 }
 
-Future<void> runFeatureCommand(List<String> args, bool verbose) async {
+Future<void> runFeatureCommand(List<String> args, String backendType, bool verbose) async {
   if (args.isEmpty) {
     print('❌ Feature name is required');
-    print('Usage: beyond_flutter_cli feature <feature_name>');
+    print('Usage: beyond_flutter_cli feature <feature_name> --backend <backend_type>');
     exit(1);
   }
 
   final featureName = args[0];
 
   try {
-    final brickPath = path.join(Directory.current.path, 'bricks', 'feature');
+    final brickPath = path.join(Directory.current.path, 'bricks', 'feature_${backendType.replaceAll('-', '_')}');
     final brick = Brick.path(brickPath);
     final generator = await MasonGenerator.fromBrick(brick);
 
     if (verbose) {
-      print('[VERBOSE] Creating feature: $featureName');
+      print('[VERBOSE] Creating feature: $featureName with $backendType backend...');
     }
 
     final target = DirectoryGeneratorTarget(Directory.current);
     await generator.generate(
       target,
-      vars: <String, dynamic>{'feature_name': featureName},
+      vars: <String, dynamic>{
+        'feature_name': featureName,
+        'backend_type': backendType,
+      },
     );
 
-    print('✅ Feature "$featureName" created successfully!');
+    print('✅ Feature "$featureName" created successfully with $backendType backend!');
     print('📁 Created feature structure:');
     print('   - lib/features/$featureName/data/');
     print('   - lib/features/$featureName/domain/');
     print('   - lib/features/$featureName/presentation/');
+    print('🔧 Backend type: $backendType');
 
     // Run DI registration hook if it exists
     final hookPath = path.join(
@@ -148,12 +182,14 @@ void main(List<String> arguments) async {
 
     // Handle commands
     if (results.command?.name == 'scaffold') {
-      await runScaffoldCommand(verbose);
+      final backendType = results.command!['backend'] as String;
+      await runScaffoldCommand(backendType, verbose);
       return;
     }
 
     if (results.command?.name == 'feature') {
-      await runFeatureCommand(results.rest, verbose);
+      final backendType = results.command!['backend'] as String;
+      await runFeatureCommand(results.rest, backendType, verbose);
       return;
     }
 
