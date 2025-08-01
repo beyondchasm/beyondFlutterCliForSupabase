@@ -79,7 +79,13 @@ dart run beyond_flutter_cli.dart scaffold --backend rest-api --with-auth
 # Firebase + 사용자 프로필
 dart run beyond_flutter_cli.dart scaffold --backend firebase --with-user
 
-# 인증 + 사용자 프로필 모두 포함
+# Supabase + 사용자 프로필  
+dart run beyond_flutter_cli.dart scaffold --backend supabase --with-user
+
+# REST API + 사용자 프로필
+dart run beyond_flutter_cli.dart scaffold --backend rest-api --with-user
+
+# 인증 + 사용자 프로필 모두 포함 (완전한 사용자 관리 시스템)
 dart run beyond_flutter_cli.dart scaffold --backend firebase --with-auth --with-user
 ```
 
@@ -386,13 +392,58 @@ class AppConfig {
 
 ## 📱 생성되는 화면 구조
 
+### 🔐 인증 기능 (`--with-auth`)
+CLI는 백엔드별로 완전한 인증 시스템을 자동 생성합니다:
+
+#### 포함되는 화면들:
+- **Login Screen**: 이메일/비밀번호 로그인, Google 로그인(Firebase)
+- **Register Screen**: 회원가입 폼과 검증
+- **Forgot Password Screen**: 비밀번호 재설정
+
+#### 기능들:
+- Clean Architecture 기반 완전한 인증 플로우
+- 실시간 인증 상태 관리 및 스트림
+- 자동 토큰 관리 (REST API)
+- 에러 처리 및 사용자 피드백
+
+### 👤 사용자 프로필 기능 (`--with-user`)
+CLI는 백엔드별로 완전한 사용자 프로필 관리 시스템을 자동 생성합니다:
+
+#### 포함되는 화면들:
+- **User Profile Screen**: 프로필 정보 보기, 수정/삭제 메뉴
+- **Edit Profile Screen**: 프로필 수정 폼 (이름, 전화번호, 프로필 사진)
+
+#### 기능들:
+```dart
+// 사용자 프로필 엔티티
+@freezed
+class UserProfile with _$UserProfile {
+  const factory UserProfile({
+    required String id,
+    required String email,
+    String? displayName,
+    String? photoUrl,
+    String? phoneNumber,
+    Map<String, dynamic>? customClaims,
+    required DateTime createdAt,
+    DateTime? lastSignInAt,
+    DateTime? updatedAt,
+  }) = _UserProfile;
+}
+```
+
+#### 백엔드별 특징:
+- **Firebase**: Firestore 실시간 동기화, Timestamp 자동 변환
+- **Supabase**: PostgreSQL Row Level Security, 실시간 구독
+- **REST API**: HTTP 기반 CRUD, 토큰 인증, 스트림 에뮬레이션
+
 ### Provider 기반 상태 관리
 ```dart
-class UserProfileScreen extends StatefulWidget {
-  // ServiceLocator를 통한 의존성 주입
-  // Core Theme 시스템 적용
-  // AppRouter를 통한 네비게이션
-  // 에러/로딩/빈 상태 처리
+class UserProvider extends ChangeNotifier {
+  // 실시간 사용자 프로필 스트림 구독
+  // CRUD 작업: 조회/수정/삭제
+  // 로딩/에러 상태 관리
+  // ServiceLocator 의존성 주입
 }
 ```
 
@@ -402,6 +453,8 @@ class UserProfileScreen extends StatefulWidget {
 - **PopupMenuButton**으로 컨텍스트 메뉴
 - **AlertDialog**로 삭제 확인
 - **SnackBar**로 피드백 메시지
+- **CircleAvatar**로 프로필 사진 표시
+- **Form Validation**으로 입력 검증
 
 ## 🔥 Freezed 시스템
 
