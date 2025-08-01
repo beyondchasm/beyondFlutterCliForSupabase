@@ -25,8 +25,8 @@ dart pub global activate mason_cli
 
 ### Beyond Flutter CLI 설치
 ```bash
-git clone https://github.com/your-repo/beyond_flutter_cli.git
-cd beyond_flutter_cli
+git clone https://github.com/beyondchasm/beyondFlutterCli.git
+cd beyondFlutterCli
 dart pub get
 ```
 
@@ -359,9 +359,9 @@ EnvironmentConfig.printEnvironmentInfo()
 
 ## 🙋‍♂️ 지원
 
-- **Issues**: [GitHub Issues](https://github.com/your-repo/beyond_flutter_cli/issues)
-- **Discussions**: [GitHub Discussions](https://github.com/your-repo/beyond_flutter_cli/discussions)
-- **Wiki**: [프로젝트 Wiki](https://github.com/your-repo/beyond_flutter_cli/wiki)
+- **Issues**: [GitHub Issues](https://github.com/beyondchasm/beyondFlutterCli/issues)
+- **Discussions**: [GitHub Discussions](https://github.com/beyondchasm/beyondFlutterCli/discussions)
+- **Wiki**: [프로젝트 Wiki](https://github.com/beyondchasm/beyondFlutterCli/wiki)
 
 ---
 
