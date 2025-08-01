@@ -1,0 +1,5 @@
+bricks:
+  project_scaffold:
+    path: ./bricks/project_scaffold
+  feature:
+    path: ./bricks/feature
