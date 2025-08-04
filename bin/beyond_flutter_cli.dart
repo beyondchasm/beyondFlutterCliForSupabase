@@ -549,11 +549,45 @@ Future<void> runFeatureCommand(
   final featureName = args[0];
 
   try {
-    final brickPath = path.join(
-      Directory.current.path,
-      'bricks',
-      'feature_${backendType.replaceAll('-', '_')}',
-    );
+    // 👇 scaffold와 동일한 방식으로 글로벌/로컬 브릭 경로 탐색
+    String brickPath;
+    final scriptPath = Platform.script.toFilePath();
+    final brickName = 'feature_${backendType.replaceAll('-', '_')}';
+
+    if (scriptPath.contains('.pub-cache') &&
+        scriptPath.contains('global_packages')) {
+      // 글로벌 설치된 git 캐시 경로에서 beyondFlutterCli 브릭 찾아오기
+      final homeDir = Platform.environment['HOME']!;
+      final pubCacheGit = Directory(path.join(homeDir, '.pub-cache', 'git'));
+      final beyondDirs = pubCacheGit
+          .listSync() // sync 방식으로 리스트 가져오기
+          .whereType<Directory>() // Directory만 골라내고
+          .where((d) => d.path.contains('beyondFlutterCli'))
+          .toList();
+
+      if (beyondDirs.isEmpty) {
+        throw Exception('beyondFlutterCli git repo not found in pub-cache');
+      }
+
+      final pkgDir = beyondDirs.last.path;
+      brickPath = path.join(pkgDir, 'bricks', brickName);
+    } else {
+      // 로컬 개발용 or path 설치: 스크립트 기준 프로젝트 루트 추출
+      String projectRoot;
+      if (scriptPath.contains('.dart_tool')) {
+        projectRoot = scriptPath.substring(0, scriptPath.indexOf('.dart_tool'));
+      } else {
+        projectRoot = path.dirname(path.dirname(scriptPath));
+      }
+      brickPath = path.join(projectRoot, 'bricks', brickName);
+    }
+
+    if (verbose) {
+      print('[VERBOSE] Script path: $scriptPath');
+      print('[VERBOSE] Feature brick path: $brickPath');
+      print('[VERBOSE] Brick exists: ${await Directory(brickPath).exists()}');
+    }
+
     final brick = Brick.path(brickPath);
     final generator = await MasonGenerator.fromBrick(brick);
 
@@ -581,7 +615,7 @@ Future<void> runFeatureCommand(
     print('   - lib/features/$featureName/presentation/');
     print('🔧 Backend type: $backendType');
 
-    // Run DI registration hook if it exists
+    // DI registration hook 실행
     final hookPath = path.join(
       'lib',
       'features',
@@ -593,7 +627,6 @@ Future<void> runFeatureCommand(
       if (verbose) {
         print('[VERBOSE] Running DI registration hook...');
       }
-
       final result = await Process.run('bash', [hookPath]);
       if (result.exitCode == 0) {
         print('✅ DI registration completed');
