@@ -2,7 +2,7 @@
 # This file stores default settings for your project generation
 
 # Default backend type (firebase, supabase, rest-api)
-backend: rest-api
+backend: supabase
 
 # Default organization name (used for package names)
 # Example: com.yourcompany

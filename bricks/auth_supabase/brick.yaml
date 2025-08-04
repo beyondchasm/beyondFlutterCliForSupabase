@@ -2,6 +2,9 @@ name: auth_supabase
 description: Supabase Authentication Feature for Flutter Clean Architecture
 version: 0.1.0+1
 
+hooks:
+  - post_gen: hooks/post_gen.dart
+
 vars:
   backend_type:
     type: string
