@@ -1,3 +1,5 @@
+import 'dart:async';
+import 'dart:isolate';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
@@ -8,8 +10,14 @@ import '../core/config/environment.dart';
 import '../core/config/supabase_config.dart';
 import '../core/routes/app_router.dart';
 import '../core/di/dependencies_injection.dart';
+import '../core/services/error_handler_service.dart';
+import '../core/services/loading_service.dart';
 
 class InitApp {
+  // 글로벌 키들
+  static final GlobalKey<NavigatorState> navigatorKey = GlobalKey<NavigatorState>();
+  static final GlobalKey<ScaffoldMessengerState> scaffoldKey = GlobalKey<ScaffoldMessengerState>();
+
   static Future<void> initialize() async {
     WidgetsFlutterBinding.ensureInitialized();
     
@@ -25,22 +33,43 @@ class InitApp {
     // Initialize Dependency Injection
     await DependenciesInjection.init();
     
-    // TODO: Add additional initialization logic here
-    // Examples:
-    // - SharedPreferences initialization  
-    // - Database initialization
-    // - Permission requests
-    // - Push notification setup
-    // - Analytics initialization
+    // 에러 핸들러 및 로딩 서비스 초기화
+    _initializeGlobalServices();
+    
+    // 글로벌 에러 Zone 설정 후 앱 실행
+    runZonedGuarded(
+      () => runApp(createApp()),
+      (error, stackTrace) {
+        // 글로벌 에러 처리
+        ErrorHandlerService.handleGlobalError(error, stackTrace);
+      },
+    );
     
     if (AppConfig.enableLogging) {
       print('✅ App initialization completed');
     }
   }
+  
+  /// 글로벌 서비스들 초기화
+  static void _initializeGlobalServices() {
+    // 에러 핸들러 키 설정
+    ErrorHandlerService.setNavigatorKey(navigatorKey);
+    ErrorHandlerService.setScaffoldKey(scaffoldKey);
+    
+    // 로딩 서비스 키 설정
+    LoadingService.setNavigatorKey(navigatorKey);
+    
+    if (AppConfig.enableLogging) {
+      print('✅ Global services initialized');
+    }
+  }
 
   static Widget createApp() {
-    return ChangeNotifierProvider(
-      create: (context) => ThemeProvider(),
+    return MultiProvider(
+      providers: [
+        ChangeNotifierProvider(create: (context) => ThemeProvider()),
+        ChangeNotifierProvider(create: (context) => LoadingService.instance),
+      ],
       child: _AppMaterialApp(),
     );
   }
@@ -72,6 +101,10 @@ class _AppMaterialAppState extends State<_AppMaterialApp> {
           themeMode: themeProvider.flutterThemeMode,
           routerConfig: AppRouter.router,
           debugShowCheckedModeBanner: AppConfig.isDebug,
+          
+          // 글로벌 키 설정
+          navigatorKey: InitApp.navigatorKey,
+          scaffoldMessengerKey: InitApp.scaffoldKey,
           
           // Localization (TODO: Configure if needed)
           // locale: const Locale('en', 'US'),
