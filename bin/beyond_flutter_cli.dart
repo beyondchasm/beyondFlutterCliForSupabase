@@ -3,7 +3,7 @@ import 'package:args/args.dart';
 import 'package:mason/mason.dart';
 import 'package:path/path.dart' as path;
 
-const String version = '0.1.0';
+const String version = '0.2.0';
 
 ArgParser buildParser() {
   return ArgParser()
@@ -30,6 +30,23 @@ ArgParser buildParser() {
           defaultsTo: 'rest-api',
           help: 'Backend type to use (firebase, supabase, rest-api)',
         )
+        ..addOption(
+          'org',
+          abbr: 'o',
+          help: 'Organization name (e.g., com.example)',
+        )
+        ..addOption(
+          'android-language',
+          allowed: ['java', 'kotlin'],
+          defaultsTo: 'kotlin',
+          help: 'Android language (java, kotlin)',
+        )
+        ..addOption(
+          'ios-language',
+          allowed: ['objc', 'swift'],
+          defaultsTo: 'swift',
+          help: 'iOS language (objc, swift)',
+        )
         ..addFlag(
           'with-auth',
           negatable: false,
@@ -51,6 +68,15 @@ ArgParser buildParser() {
           defaultsTo: 'rest-api',
           help: 'Backend type to use (firebase, supabase, rest-api)',
         ),
+    )
+    ..addCommand(
+      'init',
+      ArgParser()
+        ..addFlag(
+          'force',
+          negatable: false,
+          help: 'Force overwrite existing config file',
+        ),
     );
 }
 
@@ -64,12 +90,19 @@ void printUsage(ArgParser argParser) {
     '  scaffold    Create Flutter project scaffold with Clean Architecture structure',
   );
   print('  feature     Generate a new feature with Clean Architecture layers');
+  print('  init        Create configuration file (beyond_cli.yaml)');
   print('');
-  print('Backend options:');
-  print('  --backend, -b    Backend type: firebase, supabase, rest-api (default: rest-api)');
+  print('Scaffold options:');
+  print('  --backend, -b           Backend type: firebase, supabase, rest-api (default: rest-api)');
+  print('  --org, -o              Organization name (e.g., com.example)');
+  print('  --android-language     Android language: java, kotlin (default: kotlin)');
+  print('  --ios-language         iOS language: objc, swift (default: swift)');
+  print('  --with-auth            Include authentication feature');
+  print('  --with-user            Include user profile feature');
   print('');
   print('Examples:');
-  print('  beyond_flutter_cli scaffold --backend firebase');
+  print('  beyond_flutter_cli scaffold --backend firebase --org com.mycompany');
+  print('  beyond_flutter_cli scaffold --backend firebase --android-language java --with-auth --with-user');
   print('  beyond_flutter_cli feature user_profile --backend supabase');
   print('');
   print('Global options:');
@@ -80,9 +113,53 @@ void printUsage(ArgParser argParser) {
   );
 }
 
-Future<void> runScaffoldCommand(String backendType, bool withAuth, bool withUser, bool verbose) async {
+Future<void> runScaffoldCommand(String backendType, bool withAuth, bool withUser, bool verbose, {String? org, String? androidLanguage, String? iosLanguage}) async {
   try {
-    // Generate base scaffold
+    // Step 1: Check if Flutter project exists, if not create it
+    final pubspecFile = File('pubspec.yaml');
+    if (!await pubspecFile.exists()) {
+      print('📱 Creating Flutter project...');
+      
+      // Build flutter create command
+      final createArgs = <String>['create', '.', '--empty'];
+      
+      if (org != null && org.isNotEmpty) {
+        createArgs.addAll(['--org', org]);
+      }
+      
+      if (androidLanguage != null && androidLanguage.isNotEmpty) {
+        createArgs.addAll(['--android-language', androidLanguage]);
+      }
+      
+      if (iosLanguage != null && iosLanguage.isNotEmpty) {
+        createArgs.addAll(['--ios-language', iosLanguage]);
+      }
+      
+      if (verbose) {
+        print('[VERBOSE] Running: flutter ${createArgs.join(' ')}');
+      }
+      
+      final createResult = await Process.run('flutter', createArgs);
+      if (createResult.exitCode != 0) {
+        print('❌ Failed to create Flutter project');
+        print('');
+        if (createResult.stderr.toString().contains('flutter: command not found')) {
+          print('🔧 Error: Flutter is not installed or not in PATH');
+          print('💡 Solution: Install Flutter from https://flutter.dev/docs/get-started/install');
+        } else if (createResult.stderr.toString().contains('Invalid project name')) {
+          print('🔧 Error: Invalid project name or directory');
+          print('💡 Solution: Ensure you\'re in an empty directory with a valid name');
+        } else {
+          print('🔧 Error: ${createResult.stderr}');
+          print('💡 Solution: Check Flutter installation and try again');
+        }
+        exit(1);
+      }
+      
+      print('✅ Flutter project created successfully!');
+    }
+
+    // Step 2: Generate base scaffold
     final brickPath = path.join(
       path.dirname(Platform.script.toFilePath()),
       '..',
@@ -112,6 +189,9 @@ Future<void> runScaffoldCommand(String backendType, bool withAuth, bool withUser
     print('   - lib/main/init_app.dart');
     print('   - Splash & Home screens included');
     print('🔧 Backend type: $backendType');
+    if (org != null) print('🏢 Organization: $org');
+    if (androidLanguage != null) print('📱 Android language: $androidLanguage');
+    if (iosLanguage != null) print('🍎 iOS language: $iosLanguage');
 
     // Generate optional features
     if (withAuth) {
@@ -129,7 +209,9 @@ Future<void> runScaffoldCommand(String backendType, bool withAuth, bool withUser
     print('   flutter run');
     
   } catch (e) {
-    print('❌ Error creating scaffold: $e');
+    print('❌ Error creating scaffold');
+    print('');
+    _handleCommonErrors(e.toString());
     exit(1);
   }
 }
@@ -271,6 +353,16 @@ void main(List<String> arguments) async {
     }
     if (results.flag('version')) {
       print('beyond_flutter_cli version: $version');
+      print('');
+      print('🆕 What\'s New in v0.2.0:');
+      print('  • 🌙 Dark mode support with system theme detection');
+      print('  • 🏢 Organization name configuration (--org)');
+      print('  • 📱 Android language selection (--android-language)');
+      print('  • 🍎 iOS language selection (--ios-language)');
+      print('  • 🎨 Enhanced UI with theme toggle in all scaffolds');
+      print('  • 🔧 Improved error handling and user feedback');
+      print('');
+      print('💡 Try: beyond_flutter_cli scaffold --backend firebase --org com.yourcompany --with-auth --with-user');
       return;
     }
     if (results.flag('verbose')) {
@@ -282,13 +374,31 @@ void main(List<String> arguments) async {
       final backendType = results.command!['backend'] as String;
       final withAuth = results.command!.flag('with-auth');
       final withUser = results.command!.flag('with-user');
-      await runScaffoldCommand(backendType, withAuth, withUser, verbose);
+      final org = results.command!['org'] as String?;
+      final androidLanguage = results.command!['android-language'] as String?;
+      final iosLanguage = results.command!['ios-language'] as String?;
+      
+      await runScaffoldCommand(
+        backendType, 
+        withAuth, 
+        withUser, 
+        verbose,
+        org: org,
+        androidLanguage: androidLanguage,
+        iosLanguage: iosLanguage,
+      );
       return;
     }
 
     if (results.command?.name == 'feature') {
       final backendType = results.command!['backend'] as String;
       await runFeatureCommand(results.rest, backendType, verbose);
+      return;
+    }
+
+    if (results.command?.name == 'init') {
+      final force = results.command!.flag('force');
+      await runInitCommand(force, verbose);
       return;
     }
 
@@ -307,4 +417,101 @@ void main(List<String> arguments) async {
     print('');
     printUsage(argParser);
   }
+}
+
+Future<void> runInitCommand(bool force, bool verbose) async {
+  const configFileName = 'beyond_cli.yaml';
+  final configFile = File(configFileName);
+  
+  try {
+    // Check if config file already exists
+    if (await configFile.exists() && !force) {
+      print('⚠️  Configuration file already exists: $configFileName');
+      print('💡 Use --force to overwrite the existing file');
+      print('💡 Or edit the existing file manually');
+      return;
+    }
+    
+    if (verbose) {
+      print('[VERBOSE] Creating configuration file: $configFileName');
+    }
+    
+    // Create default configuration
+    const configContent = '''# Beyond Flutter CLI Configuration
+# This file stores default settings for your project generation
+
+# Default backend type (firebase, supabase, rest-api)
+backend: rest-api
+
+# Default organization name (used for package names)
+# Example: com.yourcompany
+org: com.example
+
+# Default programming languages
+languages:
+  android: kotlin  # java or kotlin
+  ios: swift       # objc or swift
+
+# Default features to include
+features:
+  auth: false      # Include authentication features
+  user: false      # Include user profile features
+
+# Development preferences
+preferences:
+  verbose: false   # Show detailed output by default
+  auto_pub_get: true  # Run 'flutter pub get' automatically
+  auto_build_runner: true  # Run 'dart run build_runner build' automatically
+
+# Project templates (future feature)
+# templates:
+#   - name: "minimal"
+#     backend: "rest-api"
+#     features: []
+#   - name: "full-stack"
+#     backend: "firebase"
+#     features: ["auth", "user"]
+''';
+
+    await configFile.writeAsString(configContent);
+    
+    print('✅ Configuration file created: $configFileName');
+    print('');
+    print('📝 Default settings:');
+    print('   Backend: rest-api');
+    print('   Organization: com.example');
+    print('   Android Language: kotlin');
+    print('   iOS Language: swift');
+    print('   Features: none');
+    print('');
+    print('💡 Edit $configFileName to customize your defaults');
+    print('💡 These settings will be used when options are not explicitly provided');
+    
+  } catch (e) {
+    print('❌ Error creating configuration file');
+    print('');
+    _handleCommonErrors(e.toString());
+    exit(1);
+  }
+}
+
+void _handleCommonErrors(String error) {
+  if (error.contains('PathNotFoundException') || error.contains('brick not found')) {
+    print('🔧 Error: Brick template not found');
+    print('💡 Solution: Ensure the CLI is properly installed and bricks directory exists');
+  } else if (error.contains('PermissionDeniedException')) {
+    print('🔧 Error: Permission denied');
+    print('💡 Solution: Check file/directory permissions or run with appropriate privileges');
+  } else if (error.contains('DirectoryNotEmptyException')) {
+    print('🔧 Error: Directory is not empty');
+    print('💡 Solution: Use an empty directory or remove existing files');
+  } else if (error.contains('Mason')) {
+    print('🔧 Error: Mason brick generation failed');
+    print('💡 Solution: Try running with --verbose flag for more details');
+  } else {
+    print('🔧 Error: $error');
+    print('💡 Solution: Try running with --verbose flag for more details');
+  }
+  print('');
+  print('🆘 Need help? Check: https://github.com/beyondchasm/beyondFlutterCli/issues');
 }

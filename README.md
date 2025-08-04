@@ -15,6 +15,8 @@ Flutter Clean Architecture 프로젝트를 위한 강력한 CLI 도구입니다.
 - **🎨 중앙집중식 관리**: 테마, 라우팅, 설정을 Core 모듈에서 통합 관리
 - **🗺️ GoRouter 통합**: 선언적 라우팅과 타입 안전성 제공
 - **💎 Material Design 3**: 최신 디자인 시스템 적용
+- **🌙 다크 모드 지원**: 시스템 테마 감지 및 수동 전환 기능
+- **⚙️ 설정 파일 관리**: YAML 기반 프로젝트 기본값 설정
 
 ## 📦 설치
 
@@ -57,6 +59,28 @@ dart run path/to/beyond_flutter_cli/bin/beyond_flutter_cli.dart scaffold --backe
 # 또는 백엔드 옵션 생략
 dart run path/to/beyond_flutter_cli/bin/beyond_flutter_cli.dart scaffold
 ```
+
+#### 🏢 조직 및 언어 설정
+**NEW!** 이제 Flutter 프로젝트 생성 시 조직명과 개발 언어를 선택할 수 있습니다:
+
+```bash
+# 조직명 설정 (Android 패키지명에 영향)
+dart run beyond_flutter_cli.dart scaffold --backend firebase --org com.mycompany
+
+# Android 개발 언어 선택 (기본값: kotlin)
+dart run beyond_flutter_cli.dart scaffold --backend firebase --android-language java
+
+# iOS 개발 언어 선택 (기본값: swift)
+dart run beyond_flutter_cli.dart scaffold --backend firebase --ios-language objc
+
+# 모든 옵션 조합
+dart run beyond_flutter_cli.dart scaffold --backend firebase --org com.mycompany --android-language java --ios-language objc --with-auth --with-user
+```
+
+**옵션 설명:**
+- `--org`: 조직명 (예: com.example) - Android 패키지 구조와 iOS Bundle ID에 반영
+- `--android-language`: Android 개발 언어 (java, kotlin) - 기본값: kotlin
+- `--ios-language`: iOS 개발 언어 (objc, swift) - 기본값: swift
 
 ### 1-1. 📱 즉시 실행 가능한 앱 생성
 
@@ -205,7 +229,58 @@ dart run build_runner watch
 dart run build_runner build --delete-conflicting-outputs
 ```
 
-### 4. 명령어 옵션
+### 4. 설정 파일 관리
+
+**NEW in v0.2.0!** 이제 프로젝트 기본값을 설정 파일로 관리할 수 있습니다:
+
+#### 설정 파일 생성
+```bash
+# 기본 설정 파일 생성
+dart run beyond_flutter_cli.dart init
+
+# 기존 파일 덮어쓰기
+dart run beyond_flutter_cli.dart init --force
+```
+
+이 명령어는 `beyond_cli.yaml` 파일을 생성합니다:
+
+```yaml
+# Beyond Flutter CLI Configuration
+# 기본 백엔드 타입 (firebase, supabase, rest-api)
+backend: rest-api
+
+# 기본 조직명 (패키지명에 사용)
+org: com.example
+
+# 기본 프로그래밍 언어
+languages:
+  android: kotlin  # java or kotlin
+  ios: swift       # objc or swift
+
+# 기본 기능 포함 여부
+features:
+  auth: false      # 인증 기능 포함
+  user: false      # 사용자 프로필 기능 포함
+
+# 개발 환경 설정
+preferences:
+  verbose: false           # 상세 출력 기본값
+  auto_pub_get: true      # 자동 pub get 실행
+  auto_build_runner: true # 자동 build_runner 실행
+```
+
+#### 설정 파일 활용
+설정 파일이 있으면 명령어 옵션을 생략할 수 있습니다:
+
+```bash
+# 설정 파일의 기본값 사용
+dart run beyond_flutter_cli.dart scaffold
+
+# 설정 파일의 기본값 + 특정 옵션 추가
+dart run beyond_flutter_cli.dart scaffold --with-auth --with-user
+```
+
+### 5. 명령어 옵션
 
 #### 전역 옵션
 - `--help, -h`: 도움말 표시
@@ -294,6 +369,42 @@ Beyond Flutter CLI는 Robert C. Martin의 Clean Architecture 원칙을 따릅니
 - 인증 토큰 관리 구현
 
 ## 🎨 테마 시스템
+
+**NEW in v0.2.0!** 다크 모드가 지원됩니다:
+
+### 🌙 다크 모드 지원
+- **시스템 테마 자동 감지**: 기기의 다크 모드 설정을 자동으로 따릅니다
+- **수동 전환**: 앱 내에서 라이트/다크/시스템 모드를 선택할 수 있습니다
+- **영구 저장**: SharedPreferences를 통해 테마 설정이 영구 저장됩니다
+- **실시간 적용**: Provider 패턴으로 테마 변경이 즉시 반영됩니다
+
+#### ThemeProvider 사용법
+```dart
+// 테마 상태 확인
+final themeProvider = context.read<ThemeProvider>();
+print(themeProvider.isDarkMode); // true/false
+print(themeProvider.themeMode);  // ThemeMode.system/light/dark
+
+// 테마 전환
+themeProvider.setTheme(ThemeMode.dark);   // 다크 모드로 설정
+themeProvider.setTheme(ThemeMode.light);  // 라이트 모드로 설정
+themeProvider.setTheme(ThemeMode.system); // 시스템 설정 따르기
+themeProvider.toggleTheme();              // 자동 전환
+```
+
+#### 홈 화면에 테마 토글 버튼 자동 포함
+```dart
+// AppBar에 자동으로 추가되는 테마 토글 버튼
+Consumer<ThemeProvider>(
+  builder: (context, themeProvider, child) {
+    return IconButton(
+      onPressed: () => themeProvider.toggleTheme(),
+      icon: Icon(themeProvider.themeModeIcon),
+      tooltip: '테마: ${themeProvider.themeModeText}',
+    );
+  },
+)
+```
 
 ### 색상 관리
 ```dart

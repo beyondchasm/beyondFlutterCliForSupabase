@@ -1,0 +1,34 @@
+# Beyond Flutter CLI Configuration
+# This file stores default settings for your project generation
+
+# Default backend type (firebase, supabase, rest-api)
+backend: rest-api
+
+# Default organization name (used for package names)
+# Example: com.yourcompany
+org: com.example
+
+# Default programming languages
+languages:
+  android: kotlin  # java or kotlin
+  ios: swift       # objc or swift
+
+# Default features to include
+features:
+  auth: false      # Include authentication features
+  user: false      # Include user profile features
+
+# Development preferences
+preferences:
+  verbose: false   # Show detailed output by default
+  auto_pub_get: true  # Run 'flutter pub get' automatically
+  auto_build_runner: true  # Run 'dart run build_runner build' automatically
+
+# Project templates (future feature)
+# templates:
+#   - name: "minimal"
+#     backend: "rest-api"
+#     features: []
+#   - name: "full-stack"
+#     backend: "firebase"
+#     features: ["auth", "user"]
