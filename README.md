@@ -31,10 +31,50 @@ dart pub global activate mason_cli
 ```
 
 ### Beyond Flutter CLI 설치
+
+#### 방법 1: Global Package 설치 (권장 ⭐)
+```bash
+# 저장소 클론
+git clone https://github.com/beyondchasm/beyondFlutterCli.git
+cd beyondFlutterCli
+
+# Global 패키지로 설치
+dart pub global activate --source path .
+```
+
+설치 후 간단한 명령어로 사용 가능:
+```bash
+beyond scaffold --backend firebase
+beyond scaffold --backend supabase --with-auth --with-user
+beyond feature user_profile --backend rest-api
+beyond --version
+```
+
+#### 방법 2: Shell Alias 설정
+```bash
+# 저장소 클론
+git clone https://github.com/beyondchasm/beyondFlutterCli.git
+cd beyondFlutterCli
+dart pub get
+
+# Alias 자동 설치 (macOS/Linux)
+./scripts/install_alias.sh
+```
+
+설치 후 `beyond` 명령어로 축약 사용:
+```bash
+beyond scaffold --backend firebase
+beyond init
+```
+
+#### 방법 3: 직접 실행 (개발용)
 ```bash
 git clone https://github.com/beyondchasm/beyondFlutterCli.git
 cd beyondFlutterCli
 dart pub get
+
+# 직접 실행
+dart run bin/beyond_flutter_cli.dart scaffold --backend firebase
 ```
 
 ## 🛠 사용법
@@ -45,19 +85,31 @@ dart pub get
 
 #### 🔥 Firebase 백엔드
 ```bash
-dart run path/to/beyond_flutter_cli/bin/beyond_flutter_cli.dart scaffold --backend firebase
+# Global 설치 후 (권장)
+beyond scaffold --backend firebase
+
+# 또는 직접 실행
+dart run bin/beyond_flutter_cli.dart scaffold --backend firebase
 ```
 
 #### 🗃️ Supabase 백엔드
 ```bash
-dart run path/to/beyond_flutter_cli/bin/beyond_flutter_cli.dart scaffold --backend supabase
+# Global 설치 후 (권장)
+beyond scaffold --backend supabase
+
+# 또는 직접 실행
+dart run bin/beyond_flutter_cli.dart scaffold --backend supabase
 ```
 
 #### 🌐 REST API 백엔드 (기본값)
 ```bash
-dart run path/to/beyond_flutter_cli/bin/beyond_flutter_cli.dart scaffold --backend rest-api
+# Global 설치 후 (권장)
+beyond scaffold --backend rest-api
 # 또는 백엔드 옵션 생략
-dart run path/to/beyond_flutter_cli/bin/beyond_flutter_cli.dart scaffold
+beyond scaffold
+
+# 또는 직접 실행
+dart run bin/beyond_flutter_cli.dart scaffold --backend rest-api
 ```
 
 #### 🏢 조직 및 언어 설정

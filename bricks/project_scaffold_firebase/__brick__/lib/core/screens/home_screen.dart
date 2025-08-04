@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+import 'package:provider/provider.dart';
 import '../theme/theme_colors.dart';
 import '../theme/theme_text_styles.dart';
+import '../theme/theme_provider.dart';
 import '../routes/route_names.dart';
 
 class HomeScreen extends StatelessWidget {
@@ -16,6 +18,15 @@ class HomeScreen extends StatelessWidget {
         foregroundColor: Colors.white,
         elevation: 0,
         actions: [
+          Consumer<ThemeProvider>(
+            builder: (context, themeProvider, child) {
+              return IconButton(
+                onPressed: () => themeProvider.toggleTheme(),
+                icon: Icon(themeProvider.themeModeIcon),
+                tooltip: '테마: ${themeProvider.themeModeText}',
+              );
+            },
+          ),
           PopupMenuButton<String>(
             onSelected: (value) {
               switch (value) {

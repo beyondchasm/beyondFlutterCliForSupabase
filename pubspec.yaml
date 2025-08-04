@@ -1,12 +1,15 @@
 name: beyond_flutter_cli
-description: Flutter CLI tool for generating Clean Architecture project scaffolds and features
-version: 0.1.0
-# repository: https://github.com/my_org/my_repo
+description: A powerful CLI tool for creating Flutter projects with Clean Architecture pattern
+version: 0.2.0
+homepage: https://github.com/beyondchasm/beyondFlutterCli
+repository: https://github.com/beyondchasm/beyondFlutterCli
 
 environment:
-  sdk: ^3.8.1
+  sdk: '>=3.8.1 <4.0.0'
 
-# Add regular dependencies here.
+executables:
+  beyond: beyond_flutter_cli
+
 dependencies:
   args: ^2.5.0
   mason: ^0.1.0-dev.56
