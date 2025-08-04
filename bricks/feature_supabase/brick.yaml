@@ -9,6 +9,6 @@ vars:
     type: string
     prompt: "생성할 Feature 이름을 입력하세요 (예: user)"
 
-hooks:
-  post_gen:
-    - bash: hooks/register_di.sh
+#hooks:
+#  post_gen:
+#    - bash: hooks/register_di.sh
