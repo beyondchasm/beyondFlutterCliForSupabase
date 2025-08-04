@@ -3,7 +3,7 @@ import 'package:args/args.dart';
 import 'package:mason/mason.dart';
 import 'package:path/path.dart' as path;
 
-const String version = '0.2.0';
+const String version = '0.2.1';
 
 ArgParser buildParser() {
   return ArgParser()
@@ -113,6 +113,33 @@ void printUsage(ArgParser argParser) {
   );
 }
 
+String _validateAndSanitizeProjectName(String directoryName) {
+  // Convert to valid Dart package name
+  String sanitized = directoryName
+      .toLowerCase()
+      .replaceAll(RegExp(r'[^a-z0-9_]'), '_')
+      .replaceAll(RegExp(r'_+'), '_')
+      .replaceAll(RegExp(r'^_+|_+$'), '');
+  
+  // Ensure it doesn't start with a number
+  if (sanitized.isNotEmpty && RegExp(r'^\d').hasMatch(sanitized)) {
+    sanitized = 'app_$sanitized';
+  }
+  
+  // Ensure it's not empty
+  if (sanitized.isEmpty) {
+    sanitized = 'flutter_app';
+  }
+  
+  // Check if it's a reserved word
+  final reservedWords = ['if', 'for', 'while', 'do', 'switch', 'case', 'default', 'break', 'continue', 'function', 'return', 'var', 'let', 'const', 'class', 'extends', 'implements', 'interface', 'package', 'import', 'export', 'public', 'private', 'protected', 'static', 'final', 'abstract'];
+  if (reservedWords.contains(sanitized)) {
+    sanitized = '${sanitized}_app';
+  }
+  
+  return sanitized;
+}
+
 Future<void> runScaffoldCommand(String backendType, bool withAuth, bool withUser, bool verbose, {String? org, String? androidLanguage, String? iosLanguage}) async {
   try {
     // Step 1: Check if Flutter project exists, if not create it
@@ -120,8 +147,17 @@ Future<void> runScaffoldCommand(String backendType, bool withAuth, bool withUser
     if (!await pubspecFile.exists()) {
       print('📱 Creating Flutter project...');
       
+      // Get current directory name and validate it
+      final currentDir = Directory.current.path.split('/').last;
+      final validProjectName = _validateAndSanitizeProjectName(currentDir);
+      
+      if (currentDir != validProjectName) {
+        print('⚠️  Directory name "$currentDir" is not a valid Dart package name');
+        print('🔄 Using sanitized name: "$validProjectName"');
+      }
+      
       // Build flutter create command
-      final createArgs = <String>['create', '.', '--empty'];
+      final createArgs = <String>['create', '.', '--empty', '--project-name', validProjectName];
       
       if (org != null && org.isNotEmpty) {
         createArgs.addAll(['--org', org]);
@@ -131,9 +167,8 @@ Future<void> runScaffoldCommand(String backendType, bool withAuth, bool withUser
         createArgs.addAll(['--android-language', androidLanguage]);
       }
       
-      if (iosLanguage != null && iosLanguage.isNotEmpty) {
-        createArgs.addAll(['--ios-language', iosLanguage]);
-      }
+      // Remove deprecated iOS language option
+      // Note: --ios-language is deprecated in newer Flutter versions
       
       if (verbose) {
         print('[VERBOSE] Running: flutter ${createArgs.join(' ')}');
@@ -160,12 +195,24 @@ Future<void> runScaffoldCommand(String backendType, bool withAuth, bool withUser
     }
 
     // Step 2: Generate base scaffold
-    final brickPath = path.join(
-      path.dirname(Platform.script.toFilePath()),
-      '..',
-      'bricks',
-      'project_scaffold_${backendType.replaceAll('-', '_')}',
-    );
+    // Get absolute path to bricks directory
+    String brickPath;
+    final scriptPath = Platform.script.toFilePath();
+    
+    // Check if running from global installation
+    if (scriptPath.contains('.pub-cache')) {
+      // Global installation: bricks are in the package directory
+      final packageDir = path.dirname(path.dirname(scriptPath));
+      brickPath = path.join(packageDir, 'bricks', 'project_scaffold_${backendType.replaceAll('-', '_')}');
+    } else {
+      // Local development: use relative path
+      brickPath = path.join(
+        path.dirname(scriptPath),
+        '..',
+        'bricks',
+        'project_scaffold_${backendType.replaceAll('-', '_')}',
+      );
+    }
     final brick = Brick.path(brickPath);
     final generator = await MasonGenerator.fromBrick(brick);
 
@@ -219,15 +266,26 @@ Future<void> runScaffoldCommand(String backendType, bool withAuth, bool withUser
 Future<void> _generateFeature(String featureName, String backendType, bool verbose) async {
   try {
     String brickPath;
+    final scriptPath = Platform.script.toFilePath();
     
-    // Use specific bricks for auth and user features
+    // Determine brick name based on feature type
+    String brickName;
     if (featureName == 'auth') {
-      brickPath = path.join(path.dirname(Platform.script.toFilePath()), '..', 'bricks', 'auth_${backendType.replaceAll('-', '_')}');
+      brickName = 'auth_${backendType.replaceAll('-', '_')}';
     } else if (featureName == 'user') {
-      brickPath = path.join(path.dirname(Platform.script.toFilePath()), '..', 'bricks', 'user_${backendType.replaceAll('-', '_')}');
+      brickName = 'user_${backendType.replaceAll('-', '_')}';
     } else {
-      // Use generic feature brick for other features
-      brickPath = path.join(path.dirname(Platform.script.toFilePath()), '..', 'bricks', 'feature_${backendType.replaceAll('-', '_')}');
+      brickName = 'feature_${backendType.replaceAll('-', '_')}';
+    }
+    
+    // Check if running from global installation
+    if (scriptPath.contains('.pub-cache')) {
+      // Global installation: bricks are in the package directory
+      final packageDir = path.dirname(path.dirname(scriptPath));
+      brickPath = path.join(packageDir, 'bricks', brickName);
+    } else {
+      // Local development: use relative path
+      brickPath = path.join(path.dirname(scriptPath), '..', 'bricks', brickName);
     }
     
     final brick = Brick.path(brickPath);
@@ -249,17 +307,15 @@ Future<void> _generateFeature(String featureName, String backendType, bool verbo
     print('✅ $featureName feature created');
 
     // Run DI registration hook if it exists
-    final hookPath = path.join(
-      path.dirname(Platform.script.toFilePath()),
-      '..',
-      'bricks',
-      featureName == 'auth' ? 'auth_${backendType.replaceAll('-', '_')}' :
-      featureName == 'user' ? 'user_${backendType.replaceAll('-', '_')}' :
-      'feature_${backendType.replaceAll('-', '_')}',
-      '__brick__',
-      'hooks',
-      'register_di.sh',
-    );
+    String hookPath;
+    if (scriptPath.contains('.pub-cache')) {
+      // Global installation: hooks are in the package directory
+      final packageDir = path.dirname(path.dirname(scriptPath));
+      hookPath = path.join(packageDir, 'bricks', brickName, '__brick__', 'hooks', 'register_di.sh');
+    } else {
+      // Local development: use relative path
+      hookPath = path.join(path.dirname(scriptPath), '..', 'bricks', brickName, '__brick__', 'hooks', 'register_di.sh');
+    }
     
     if (await File(hookPath).exists()) {
       if (verbose) {
@@ -354,13 +410,13 @@ void main(List<String> arguments) async {
     if (results.flag('version')) {
       print('beyond_flutter_cli version: $version');
       print('');
-      print('🆕 What\'s New in v0.2.0:');
+      print('🆕 What\'s New in v0.2.1:');
+      print('  • 🛡️ Smart project name validation and auto-sanitization');
+      print('  • 🔄 Latest Flutter compatibility (deprecated options removed)');
       print('  • 🌙 Dark mode support with system theme detection');
       print('  • 🏢 Organization name configuration (--org)');
       print('  • 📱 Android language selection (--android-language)');
-      print('  • 🍎 iOS language selection (--ios-language)');
-      print('  • 🎨 Enhanced UI with theme toggle in all scaffolds');
-      print('  • 🔧 Improved error handling and user feedback');
+      print('  • 🔧 Enhanced error handling with user-friendly messages');
       print('');
       print('💡 Try: beyond_flutter_cli scaffold --backend firebase --org com.yourcompany --with-auth --with-user');
       return;
