@@ -739,11 +739,39 @@ feature_name/
 └── presentation/   # UI 관련
 ```
 
-## 🐛 최신 수정 사항 (v0.2.1)
+## 🐛 최신 수정 사항 (v0.2.2)
 
 ### ✅ 해결된 버그들
 
-#### 1. 프로젝트 이름 검증 오류 해결
+#### 1. 🔧 **Global 설치 시 Brick 템플릿 로딩 오류 해결**
+```bash
+# 이전: "Brick template not found" 오류 발생
+# 현재: 모든 설치 방법에서 정상 작동
+❌ Error creating scaffold
+🔧 Error: Brick template not found
+
+# 해결됨! ✅
+📱 Creating Flutter project...
+✅ Flutter project created successfully!
+✅ Project scaffold created successfully with supabase backend!
+```
+
+**수정 내용:**
+- 🎯 **설치 방법 구분**: Git 설치와 로컬 경로 설치를 정확히 구분
+- 📁 **경로 해결 개선**: 스냅샷 실행 시 프로젝트 루트를 올바르게 찾도록 수정
+- 🔍 **디버깅 강화**: `--verbose` 플래그로 상세한 경로 정보 제공
+- ⚡ **안정성 향상**: 두 가지 설치 방법에서 모두 안정적으로 작동
+
+**지원하는 설치 방법:**
+```bash
+# 방법 1: Git에서 직접 설치
+dart pub global activate --source git https://github.com/beyondchasm/beyondFlutterCli.git
+
+# 방법 2: 로컬 경로에서 설치 (개발용)
+dart pub global activate --source path /path/to/beyondFlutterCli
+```
+
+#### 2. 프로젝트 이름 검증 오류 해결 (v0.2.1)
 ```bash
 # 이전: "beyondBookLog is not a valid Dart package name" 오류 발생
 # 현재: 자동으로 유효한 패키지명으로 변환
@@ -758,7 +786,7 @@ Directory: "2024Project" → Package name: "app_2024_project"
 - 🛡️ **예약어 처리**: Dart 예약어 충돌 방지
 - ✨ **빈 이름 처리**: 빈 이름은 'flutter_app'으로 기본 설정
 
-#### 2. Flutter 호환성 개선
+#### 3. Flutter 호환성 개선 (v0.2.1)
 ```bash
 # 이전: "The ios-language option is deprecated" 경고 발생
 # 현재: 최신 Flutter 버전과 완벽 호환
@@ -769,7 +797,7 @@ Directory: "2024Project" → Package name: "app_2024_project"
 - 🔧 **최신 Flutter 지원**: Flutter 3.8.1+ 버전과 호환
 - ⚡ **깔끔한 실행**: 불필요한 경고 메시지 제거
 
-#### 3. 사용자 경험 개선
+#### 4. 사용자 경험 개선
 ```bash
 # 더 친화적인 오류 메시지와 해결 방법 제시
 ⚠️  Directory name "beyondBookLog" is not a valid Dart package name

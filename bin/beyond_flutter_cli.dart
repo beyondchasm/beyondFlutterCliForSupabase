@@ -3,7 +3,7 @@ import 'package:args/args.dart';
 import 'package:mason/mason.dart';
 import 'package:path/path.dart' as path;
 
-const String version = '0.2.1';
+const String version = '0.2.2';
 
 ArgParser buildParser() {
   return ArgParser()
@@ -200,19 +200,49 @@ Future<void> runScaffoldCommand(String backendType, bool withAuth, bool withUser
     final scriptPath = Platform.script.toFilePath();
     
     // Check if running from global installation
-    if (scriptPath.contains('.pub-cache')) {
-      // Global installation: bricks are in the package directory
-      final packageDir = path.dirname(path.dirname(scriptPath));
-      brickPath = path.join(packageDir, 'bricks', 'project_scaffold_${backendType.replaceAll('-', '_')}');
+    if (scriptPath.contains('.pub-cache') && scriptPath.contains('global_packages')) {
+      // Global installation from git: find the git repository in pub-cache
+      final homeDir = Platform.environment['HOME'] ?? Directory.current.path;
+      final pubCacheDir = Directory(path.join(homeDir, '.pub-cache'));
+      final gitDir = Directory(path.join(pubCacheDir.path, 'git'));
+      
+      if (await gitDir.exists()) {
+        final beyondDirs = await gitDir.list()
+            .where((entity) => entity is Directory && entity.path.contains('beyondFlutterCli'))
+            .cast<Directory>()
+            .toList();
+            
+        if (beyondDirs.isNotEmpty) {
+          // Use the most recent version (should be the last in the list)
+          final packageDir = beyondDirs.last.path;
+          brickPath = path.join(packageDir, 'bricks', 'project_scaffold_${backendType.replaceAll('-', '_')}');
+        } else {
+          throw Exception('beyondFlutterCli git repository not found in pub-cache');
+        }
+      } else {
+        throw Exception('Git directory not found in pub-cache');
+      }
     } else {
-      // Local development: use relative path
-      brickPath = path.join(
-        path.dirname(scriptPath),
-        '..',
-        'bricks',
-        'project_scaffold_${backendType.replaceAll('-', '_')}',
-      );
+      // Local development or path-based installation: use relative path from bin directory
+      // scriptPath could be like: /path/to/project/bin/script.dart or /path/to/project/.dart_tool/pub/bin/script.dart-snapshot
+      String projectRoot;
+      if (scriptPath.contains('.dart_tool')) {
+        // Running from snapshot: /path/to/project/.dart_tool/pub/bin/beyond_flutter_cli/beyond_flutter_cli.dart-3.8.1.snapshot
+        final dartToolIndex = scriptPath.indexOf('.dart_tool');
+        projectRoot = scriptPath.substring(0, dartToolIndex);
+      } else {
+        // Running directly: /path/to/project/bin/beyond_flutter_cli.dart
+        projectRoot = path.dirname(path.dirname(scriptPath));
+      }
+      brickPath = path.join(projectRoot, 'bricks', 'project_scaffold_${backendType.replaceAll('-', '_')}');
     }
+    
+    if (verbose) {
+      print('[VERBOSE] Script path: $scriptPath');
+      print('[VERBOSE] Brick path: $brickPath');
+      print('[VERBOSE] Brick exists: ${await Directory(brickPath).exists()}');
+    }
+    
     final brick = Brick.path(brickPath);
     final generator = await MasonGenerator.fromBrick(brick);
 
@@ -258,6 +288,10 @@ Future<void> runScaffoldCommand(String backendType, bool withAuth, bool withUser
   } catch (e) {
     print('❌ Error creating scaffold');
     print('');
+    if (verbose) {
+      print('[VERBOSE] Exception: $e');
+      print('[VERBOSE] Stack trace: ${StackTrace.current}');
+    }
     _handleCommonErrors(e.toString());
     exit(1);
   }
@@ -279,13 +313,41 @@ Future<void> _generateFeature(String featureName, String backendType, bool verbo
     }
     
     // Check if running from global installation
-    if (scriptPath.contains('.pub-cache')) {
-      // Global installation: bricks are in the package directory
-      final packageDir = path.dirname(path.dirname(scriptPath));
-      brickPath = path.join(packageDir, 'bricks', brickName);
+    if (scriptPath.contains('.pub-cache') && scriptPath.contains('global_packages')) {
+      // Global installation from git: find the git repository in pub-cache
+      final homeDir = Platform.environment['HOME'] ?? Directory.current.path;
+      final pubCacheDir = Directory(path.join(homeDir, '.pub-cache'));
+      final gitDir = Directory(path.join(pubCacheDir.path, 'git'));
+      
+      if (await gitDir.exists()) {
+        final beyondDirs = await gitDir.list()
+            .where((entity) => entity is Directory && entity.path.contains('beyondFlutterCli'))
+            .cast<Directory>()
+            .toList();
+            
+        if (beyondDirs.isNotEmpty) {
+          // Use the most recent version (should be the last in the list)
+          final packageDir = beyondDirs.last.path;
+          brickPath = path.join(packageDir, 'bricks', brickName);
+        } else {
+          throw Exception('beyondFlutterCli git repository not found in pub-cache');
+        }
+      } else {
+        throw Exception('Git directory not found in pub-cache');
+      }
     } else {
-      // Local development: use relative path
-      brickPath = path.join(path.dirname(scriptPath), '..', 'bricks', brickName);
+      // Local development or path-based installation: use relative path from bin directory
+      // scriptPath could be like: /path/to/project/bin/script.dart or /path/to/project/.dart_tool/pub/bin/script.dart-snapshot
+      String projectRoot;
+      if (scriptPath.contains('.dart_tool')) {
+        // Running from snapshot: /path/to/project/.dart_tool/pub/bin/beyond_flutter_cli/beyond_flutter_cli.dart-3.8.1.snapshot
+        final dartToolIndex = scriptPath.indexOf('.dart_tool');
+        projectRoot = scriptPath.substring(0, dartToolIndex);
+      } else {
+        // Running directly: /path/to/project/bin/beyond_flutter_cli.dart
+        projectRoot = path.dirname(path.dirname(scriptPath));
+      }
+      brickPath = path.join(projectRoot, 'bricks', brickName);
     }
     
     final brick = Brick.path(brickPath);
@@ -308,13 +370,40 @@ Future<void> _generateFeature(String featureName, String backendType, bool verbo
 
     // Run DI registration hook if it exists
     String hookPath;
-    if (scriptPath.contains('.pub-cache')) {
-      // Global installation: hooks are in the package directory
-      final packageDir = path.dirname(path.dirname(scriptPath));
-      hookPath = path.join(packageDir, 'bricks', brickName, '__brick__', 'hooks', 'register_di.sh');
+    if (scriptPath.contains('.pub-cache') && scriptPath.contains('global_packages')) {
+      // Global installation from git: find the git repository in pub-cache
+      final homeDir = Platform.environment['HOME'] ?? Directory.current.path;
+      final pubCacheDir = Directory(path.join(homeDir, '.pub-cache'));
+      final gitDir = Directory(path.join(pubCacheDir.path, 'git'));
+      
+      if (await gitDir.exists()) {
+        final beyondDirs = await gitDir.list()
+            .where((entity) => entity is Directory && entity.path.contains('beyondFlutterCli'))
+            .cast<Directory>()
+            .toList();
+            
+        if (beyondDirs.isNotEmpty) {
+          // Use the most recent version (should be the last in the list)
+          final packageDir = beyondDirs.last.path;
+          hookPath = path.join(packageDir, 'bricks', brickName, '__brick__', 'hooks', 'register_di.sh');
+        } else {
+          hookPath = ''; // Skip hook if can't find repository
+        }
+      } else {
+        hookPath = ''; // Skip hook if can't find git directory
+      }
     } else {
-      // Local development: use relative path
-      hookPath = path.join(path.dirname(scriptPath), '..', 'bricks', brickName, '__brick__', 'hooks', 'register_di.sh');
+      // Local development or path-based installation: use relative path from bin directory
+      String projectRoot;
+      if (scriptPath.contains('.dart_tool')) {
+        // Running from snapshot: /path/to/project/.dart_tool/pub/bin/beyond_flutter_cli/beyond_flutter_cli.dart-3.8.1.snapshot
+        final dartToolIndex = scriptPath.indexOf('.dart_tool');
+        projectRoot = scriptPath.substring(0, dartToolIndex);
+      } else {
+        // Running directly: /path/to/project/bin/beyond_flutter_cli.dart
+        projectRoot = path.dirname(path.dirname(scriptPath));
+      }
+      hookPath = path.join(projectRoot, 'bricks', brickName, '__brick__', 'hooks', 'register_di.sh');
     }
     
     if (await File(hookPath).exists()) {
