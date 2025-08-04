@@ -1,5 +1,20 @@
 bricks:
+  # 기본 프로젝트 구조 생성을 위한 브릭
   project_scaffold:
-    path: ./bricks/project_scaffold
-  feature:
-    path: ./bricks/feature
+    path: ./bricks/project_scaffold_supabase
+  
+  # 일반적인 기능 생성을 위한 브릭
+  feature_supabase:
+    path: ./bricks/feature_supabase
+  
+  # 인증 기능 생성을 위한 브릭
+  auth_supabase:
+    path: ./bricks/auth_supabase
+  
+  # 사용자 프로필 기능 생성을 위한 브릭
+  user_supabase:
+    path: ./bricks/user_supabase
+  
+  # 온보딩 기능 생성을 위한 브릭
+  onboarding_supabase:
+    path: ./bricks/onboarding_supabase

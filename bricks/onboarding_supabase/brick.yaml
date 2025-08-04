@@ -1,0 +1,9 @@
+name: onboarding_supabase
+description: Onboarding Feature for Flutter Clean Architecture with Supabase
+version: 0.1.0+1
+
+vars:
+  backend_type:
+    type: string
+    default: supabase
+    description: Backend type (supabase)

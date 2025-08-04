@@ -69,7 +69,7 @@ class _AppMaterialAppState extends State<_AppMaterialApp> {
           title: AppConfig.appName,
           theme: AppTheme.lightTheme(),
           darkTheme: AppTheme.darkTheme(),
-          themeMode: themeProvider.isDarkMode ? ThemeMode.dark : ThemeMode.light,
+          themeMode: themeProvider.flutterThemeMode,
           routerConfig: AppRouter.router,
           debugShowCheckedModeBanner: AppConfig.isDebug,
           

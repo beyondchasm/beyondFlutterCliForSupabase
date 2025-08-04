@@ -1,7 +1,7 @@
 import 'package:get_it/get_it.dart';
 
 class ServiceLocator {
-  static final GetIt _getIt = getIt.instance;
+  static final GetIt _getIt = GetIt.instance;
 
   // Generic get method
   static T get<T extends Object>() {

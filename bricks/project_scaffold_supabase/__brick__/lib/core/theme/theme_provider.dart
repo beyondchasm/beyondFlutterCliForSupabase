@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
-enum ThemeMode {
+enum AppThemeMode {
   system,
   light,
   dark,
@@ -11,16 +11,22 @@ enum ThemeMode {
 class ThemeProvider extends ChangeNotifier {
   static const String _themeKey = 'theme_mode';
   
-  ThemeMode _themeMode = ThemeMode.system;
+  AppThemeMode _themeMode = AppThemeMode.system;
   late SharedPreferences _prefs;
   
-  ThemeMode get themeMode => _themeMode;
+  AppThemeMode get themeMode => _themeMode;
+  
+  ThemeMode get flutterThemeMode => _themeMode == AppThemeMode.dark 
+      ? ThemeMode.dark 
+      : _themeMode == AppThemeMode.light 
+          ? ThemeMode.light 
+          : ThemeMode.system;
   
   bool get isDarkMode {
-    if (_themeMode == ThemeMode.system) {
+    if (_themeMode == AppThemeMode.system) {
       return WidgetsBinding.instance.platformDispatcher.platformBrightness == Brightness.dark;
     }
-    return _themeMode == ThemeMode.dark;
+    return _themeMode == AppThemeMode.dark;
   }
   
   Future<void> init() async {
@@ -29,7 +35,7 @@ class ThemeProvider extends ChangeNotifier {
     
     // Listen to system theme changes
     WidgetsBinding.instance.platformDispatcher.onPlatformBrightnessChanged = () {
-      if (_themeMode == ThemeMode.system) {
+      if (_themeMode == AppThemeMode.system) {
         notifyListeners();
       }
     };
@@ -38,15 +44,15 @@ class ThemeProvider extends ChangeNotifier {
   void _loadThemeMode() {
     final savedTheme = _prefs.getString(_themeKey);
     if (savedTheme != null) {
-      _themeMode = ThemeMode.values.firstWhere(
+      _themeMode = AppThemeMode.values.firstWhere(
         (e) => e.toString() == savedTheme,
-        orElse: () => ThemeMode.system,
+        orElse: () => AppThemeMode.system,
       );
     }
     notifyListeners();
   }
   
-  Future<void> setThemeMode(ThemeMode mode) async {
+  Future<void> setThemeMode(AppThemeMode mode) async {
     if (_themeMode == mode) return;
     
     _themeMode = mode;
@@ -73,36 +79,36 @@ class ThemeProvider extends ChangeNotifier {
   
   void toggleTheme() {
     switch (_themeMode) {
-      case ThemeMode.system:
-        setThemeMode(ThemeMode.light);
+      case AppThemeMode.system:
+        setThemeMode(AppThemeMode.light);
         break;
-      case ThemeMode.light:
-        setThemeMode(ThemeMode.dark);
+      case AppThemeMode.light:
+        setThemeMode(AppThemeMode.dark);
         break;
-      case ThemeMode.dark:
-        setThemeMode(ThemeMode.system);
+      case AppThemeMode.dark:
+        setThemeMode(AppThemeMode.system);
         break;
     }
   }
   
   String get themeModeText {
     switch (_themeMode) {
-      case ThemeMode.system:
+      case AppThemeMode.system:
         return '시스템';
-      case ThemeMode.light:
+      case AppThemeMode.light:
         return '라이트';
-      case ThemeMode.dark:
+      case AppThemeMode.dark:
         return '다크';
     }
   }
   
   IconData get themeModeIcon {
     switch (_themeMode) {
-      case ThemeMode.system:
+      case AppThemeMode.system:
         return Icons.brightness_auto;
-      case ThemeMode.light:
+      case AppThemeMode.light:
         return Icons.brightness_7;
-      case ThemeMode.dark:
+      case AppThemeMode.dark:
         return Icons.brightness_4;
     }
   }

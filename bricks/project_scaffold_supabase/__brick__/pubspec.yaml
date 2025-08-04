@@ -1,68 +1,113 @@
 name: flutter_clean_architecture_app
-description: A Flutter app built with Clean Architecture
+description: A Flutter app with Clean Architecture pattern and Supabase backend
 version: 1.0.0+1
 
+# Dart 및 Flutter SDK 버전 요구사항
 environment:
   sdk: '>=3.8.1 <4.0.0'
   flutter: ">=3.8.1"
 
+# 프로덕션 의존성
 dependencies:
   flutter:
     sdk: flutter
   
-  # State Management
-  provider: ^6.1.2
-  flutter_riverpod: ^2.6.1
+  # 상태 관리 (State Management)
+  provider: ^6.1.2              # Provider 패턴을 위한 상태 관리
+  flutter_riverpod: ^2.6.1      # Riverpod (Provider의 진화 버전, 선택적 사용)
   
-  # Navigation
-  go_router: ^14.2.7
+  # 내비게이션 (Navigation)
+  go_router: ^14.2.7            # 선언적 라우팅을 위한 GoRouter
   
-  # Dependency Injection
-  get_it: ^7.7.0
+  # 의존성 주입 (Dependency Injection)
+  get_it: ^7.7.0                # 서비스 로케이터 패턴
   
-  # Code Generation
-  freezed_annotation: ^2.4.4
-  json_annotation: ^4.9.0
+  # 코드 생성 (Code Generation) - 런타임에 필요한 어노테이션
+  freezed_annotation: ^2.4.4    # Freezed 모델 생성을 위한 어노테이션
+  json_annotation: ^4.9.0       # JSON 직렬화를 위한 어노테이션
   
-  # Supabase
-  supabase_flutter: ^2.8.0
+  # 백엔드 서비스 (Backend Services)
+  supabase_flutter: ^2.8.0      # Supabase Flutter SDK (인증, 데이터베이스, 스토리지)
   
-  # HTTP Client (fallback)
-  dio: ^5.4.3+1
+  # HTTP 클라이언트 (HTTP Client)
+  dio: ^5.4.3+1                 # 고급 HTTP 클라이언트 (인터셉터, 캐싱 등 지원)
   
-  # Local Storage
-  shared_preferences: ^2.2.3
+  # 로컬 저장소 (Local Storage)
+  shared_preferences: ^2.2.3    # 간단한 키-값 저장소
   
-  # Date/Time
-  intl: ^0.19.0
+  # 날짜/시간 (Date/Time)
+  intl: ^0.19.0                 # 국제화 및 날짜 포맷팅
   
-  # UI Components
-  cupertino_icons: ^1.0.6
+  # UI 컴포넌트 (UI Components)
+  cupertino_icons: ^1.0.6       # iOS 스타일 아이콘
+  
+  # 이미지 처리 (Image Processing)
+  cached_network_image: ^3.3.1  # 네트워크 이미지 캐싱
+  image_picker: ^1.0.7          # 갤러리/카메라에서 이미지 선택
+  
+  # 유틸리티 (Utilities)
+  uuid: ^4.3.3                  # UUID 생성기
+  path_provider: ^2.1.2         # 앱 디렉토리 경로 제공
+  
+  # 폼 검증 (Form Validation)
+  formz: ^0.6.1                 # 폼 입력 검증
+  
+  # 로깅 (Logging)
+  logger: ^2.0.2+1              # 구조화된 로깅
 
+# 개발 의존성 (Development Dependencies)
 dev_dependencies:
   flutter_test:
     sdk: flutter
   
-  # Linting
-  flutter_lints: ^4.0.0
+  # 린팅 및 코드 품질 (Linting & Code Quality)
+  flutter_lints: ^4.0.0         # Flutter 권장 린트 규칙
+  very_good_analysis: ^5.1.0    # Very Good Ventures의 엄격한 린트 규칙 (선택적)
   
-  # Code Generation
-  build_runner: ^2.4.12
-  freezed: ^2.5.7
-  json_serializable: ^6.8.0
+  # 코드 생성 (Code Generation)
+  build_runner: ^2.4.12         # 코드 생성 러너
+  freezed: ^2.5.7               # 불변 클래스 및 union 타입 생성
+  json_serializable: ^6.8.0     # JSON 직렬화 코드 생성
+  
+  # 테스팅 (Testing)
+  mockito: ^5.4.4               # 목(Mock) 객체 생성
+  bloc_test: ^9.1.5             # BLoC 테스팅 유틸리티 (BLoC 사용 시)
+  integration_test:             # 통합 테스트
+    sdk: flutter
+  
+  # 테스트 커버리지 (Test Coverage) - 패키지 문제로 주석 처리
+  # test_coverage: ^0.2.0         # 테스트 커버리지 측정
 
+# Flutter 설정
 flutter:
   uses-material-design: true
   
-  # Add assets here
-  # assets:
-  #   - images/
-  #   - icons/
+  # 애셋 설정 (Assets Configuration)
+  # 이미지, 아이콘, 기타 정적 파일들을 여기에 추가하세요
+  assets:
+    - assets/images/              # 이미지 파일들
+    - assets/icons/               # 아이콘 파일들
+    - assets/logos/               # 로고 파일들
+    # 온보딩 이미지 (onboarding 기능 사용 시 필요)
+    - assets/images/onboarding_welcome.png
+    - assets/images/onboarding_features.png
+    - assets/images/onboarding_start.png
   
-  # Add fonts here
+  # 폰트 설정 (Fonts Configuration)
+  # 커스텀 폰트를 사용하려면 아래 주석을 해제하고 설정하세요
   # fonts:
-  #   - family: Roboto
+  #   - family: NotoSans           # 한글 지원이 좋은 Noto Sans
+  #     fonts:
+  #       - asset: fonts/NotoSans-Regular.ttf
+  #       - asset: fonts/NotoSans-Bold.ttf
+  #         weight: 700
+  #       - asset: fonts/NotoSans-Light.ttf
+  #         weight: 300
+  #   
+  #   - family: Roboto             # 영문용 Roboto
   #     fonts:
   #       - asset: fonts/Roboto-Regular.ttf
   #       - asset: fonts/Roboto-Bold.ttf
   #         weight: 700
+  #       - asset: fonts/Roboto-Light.ttf
+  #         weight: 300
