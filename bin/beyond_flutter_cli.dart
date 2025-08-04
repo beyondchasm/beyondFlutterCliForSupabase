@@ -3,7 +3,7 @@ import 'package:args/args.dart';
 import 'package:mason/mason.dart';
 import 'package:path/path.dart' as path;
 
-const String version = '0.2.2';
+const String version = '0.2.4';
 
 ArgParser buildParser() {
   return ArgParser()
@@ -60,23 +60,21 @@ ArgParser buildParser() {
     )
     ..addCommand(
       'feature',
-      ArgParser()
-        ..addOption(
-          'backend',
-          abbr: 'b',
-          allowed: ['firebase', 'supabase', 'rest-api'],
-          defaultsTo: 'rest-api',
-          help: 'Backend type to use (firebase, supabase, rest-api)',
-        ),
+      ArgParser()..addOption(
+        'backend',
+        abbr: 'b',
+        allowed: ['firebase', 'supabase', 'rest-api'],
+        defaultsTo: 'rest-api',
+        help: 'Backend type to use (firebase, supabase, rest-api)',
+      ),
     )
     ..addCommand(
       'init',
-      ArgParser()
-        ..addFlag(
-          'force',
-          negatable: false,
-          help: 'Force overwrite existing config file',
-        ),
+      ArgParser()..addFlag(
+        'force',
+        negatable: false,
+        help: 'Force overwrite existing config file',
+      ),
     );
 }
 
@@ -93,16 +91,22 @@ void printUsage(ArgParser argParser) {
   print('  init        Create configuration file (beyond_cli.yaml)');
   print('');
   print('Scaffold options:');
-  print('  --backend, -b           Backend type: firebase, supabase, rest-api (default: rest-api)');
+  print(
+    '  --backend, -b           Backend type: firebase, supabase, rest-api (default: rest-api)',
+  );
   print('  --org, -o              Organization name (e.g., com.example)');
-  print('  --android-language     Android language: java, kotlin (default: kotlin)');
+  print(
+    '  --android-language     Android language: java, kotlin (default: kotlin)',
+  );
   print('  --ios-language         iOS language: objc, swift (default: swift)');
   print('  --with-auth            Include authentication feature');
   print('  --with-user            Include user profile feature');
   print('');
   print('Examples:');
   print('  beyond_flutter_cli scaffold --backend firebase --org com.mycompany');
-  print('  beyond_flutter_cli scaffold --backend firebase --android-language java --with-auth --with-user');
+  print(
+    '  beyond_flutter_cli scaffold --backend firebase --android-language java --with-auth --with-user',
+  );
   print('  beyond_flutter_cli feature user_profile --backend supabase');
   print('');
   print('Global options:');
@@ -120,77 +124,129 @@ String _validateAndSanitizeProjectName(String directoryName) {
       .replaceAll(RegExp(r'[^a-z0-9_]'), '_')
       .replaceAll(RegExp(r'_+'), '_')
       .replaceAll(RegExp(r'^_+|_+$'), '');
-  
+
   // Ensure it doesn't start with a number
   if (sanitized.isNotEmpty && RegExp(r'^\d').hasMatch(sanitized)) {
     sanitized = 'app_$sanitized';
   }
-  
+
   // Ensure it's not empty
   if (sanitized.isEmpty) {
     sanitized = 'flutter_app';
   }
-  
+
   // Check if it's a reserved word
-  final reservedWords = ['if', 'for', 'while', 'do', 'switch', 'case', 'default', 'break', 'continue', 'function', 'return', 'var', 'let', 'const', 'class', 'extends', 'implements', 'interface', 'package', 'import', 'export', 'public', 'private', 'protected', 'static', 'final', 'abstract'];
+  final reservedWords = [
+    'if',
+    'for',
+    'while',
+    'do',
+    'switch',
+    'case',
+    'default',
+    'break',
+    'continue',
+    'function',
+    'return',
+    'var',
+    'let',
+    'const',
+    'class',
+    'extends',
+    'implements',
+    'interface',
+    'package',
+    'import',
+    'export',
+    'public',
+    'private',
+    'protected',
+    'static',
+    'final',
+    'abstract',
+  ];
   if (reservedWords.contains(sanitized)) {
     sanitized = '${sanitized}_app';
   }
-  
+
   return sanitized;
 }
 
-Future<void> runScaffoldCommand(String backendType, bool withAuth, bool withUser, bool verbose, {String? org, String? androidLanguage, String? iosLanguage}) async {
+Future<void> runScaffoldCommand(
+  String backendType,
+  bool withAuth,
+  bool withUser,
+  bool verbose, {
+  String? org,
+  String? androidLanguage,
+  String? iosLanguage,
+}) async {
   try {
     // Step 1: Check if Flutter project exists, if not create it
     final pubspecFile = File('pubspec.yaml');
     if (!await pubspecFile.exists()) {
       print('📱 Creating Flutter project...');
-      
+
       // Get current directory name and validate it
       final currentDir = Directory.current.path.split('/').last;
       final validProjectName = _validateAndSanitizeProjectName(currentDir);
-      
+
       if (currentDir != validProjectName) {
-        print('⚠️  Directory name "$currentDir" is not a valid Dart package name');
+        print(
+          '⚠️  Directory name "$currentDir" is not a valid Dart package name',
+        );
         print('🔄 Using sanitized name: "$validProjectName"');
       }
-      
+
       // Build flutter create command
-      final createArgs = <String>['create', '.', '--empty', '--project-name', validProjectName];
-      
+      final createArgs = <String>[
+        'create',
+        '.',
+        '--empty',
+        '--project-name',
+        validProjectName,
+      ];
+
       if (org != null && org.isNotEmpty) {
         createArgs.addAll(['--org', org]);
       }
-      
+
       if (androidLanguage != null && androidLanguage.isNotEmpty) {
         createArgs.addAll(['--android-language', androidLanguage]);
       }
-      
+
       // Remove deprecated iOS language option
       // Note: --ios-language is deprecated in newer Flutter versions
-      
+
       if (verbose) {
         print('[VERBOSE] Running: flutter ${createArgs.join(' ')}');
       }
-      
+
       final createResult = await Process.run('flutter', createArgs);
       if (createResult.exitCode != 0) {
         print('❌ Failed to create Flutter project');
         print('');
-        if (createResult.stderr.toString().contains('flutter: command not found')) {
+        if (createResult.stderr.toString().contains(
+          'flutter: command not found',
+        )) {
           print('🔧 Error: Flutter is not installed or not in PATH');
-          print('💡 Solution: Install Flutter from https://flutter.dev/docs/get-started/install');
-        } else if (createResult.stderr.toString().contains('Invalid project name')) {
+          print(
+            '💡 Solution: Install Flutter from https://flutter.dev/docs/get-started/install',
+          );
+        } else if (createResult.stderr.toString().contains(
+          'Invalid project name',
+        )) {
           print('🔧 Error: Invalid project name or directory');
-          print('💡 Solution: Ensure you\'re in an empty directory with a valid name');
+          print(
+            '💡 Solution: Ensure you\'re in an empty directory with a valid name',
+          );
         } else {
           print('🔧 Error: ${createResult.stderr}');
           print('💡 Solution: Check Flutter installation and try again');
         }
         exit(1);
       }
-      
+
       print('✅ Flutter project created successfully!');
     }
 
@@ -198,26 +254,38 @@ Future<void> runScaffoldCommand(String backendType, bool withAuth, bool withUser
     // Get absolute path to bricks directory
     String brickPath;
     final scriptPath = Platform.script.toFilePath();
-    
+
     // Check if running from global installation
-    if (scriptPath.contains('.pub-cache') && scriptPath.contains('global_packages')) {
+    if (scriptPath.contains('.pub-cache') &&
+        scriptPath.contains('global_packages')) {
       // Global installation from git: find the git repository in pub-cache
       final homeDir = Platform.environment['HOME'] ?? Directory.current.path;
       final pubCacheDir = Directory(path.join(homeDir, '.pub-cache'));
       final gitDir = Directory(path.join(pubCacheDir.path, 'git'));
-      
+
       if (await gitDir.exists()) {
-        final beyondDirs = await gitDir.list()
-            .where((entity) => entity is Directory && entity.path.contains('beyondFlutterCli'))
+        final beyondDirs = await gitDir
+            .list()
+            .where(
+              (entity) =>
+                  entity is Directory &&
+                  entity.path.contains('beyondFlutterCli'),
+            )
             .cast<Directory>()
             .toList();
-            
+
         if (beyondDirs.isNotEmpty) {
           // Use the most recent version (should be the last in the list)
           final packageDir = beyondDirs.last.path;
-          brickPath = path.join(packageDir, 'bricks', 'project_scaffold_${backendType.replaceAll('-', '_')}');
+          brickPath = path.join(
+            packageDir,
+            'bricks',
+            'project_scaffold_${backendType.replaceAll('-', '_')}',
+          );
         } else {
-          throw Exception('beyondFlutterCli git repository not found in pub-cache');
+          throw Exception(
+            'beyondFlutterCli git repository not found in pub-cache',
+          );
         }
       } else {
         throw Exception('Git directory not found in pub-cache');
@@ -234,15 +302,19 @@ Future<void> runScaffoldCommand(String backendType, bool withAuth, bool withUser
         // Running directly: /path/to/project/bin/beyond_flutter_cli.dart
         projectRoot = path.dirname(path.dirname(scriptPath));
       }
-      brickPath = path.join(projectRoot, 'bricks', 'project_scaffold_${backendType.replaceAll('-', '_')}');
+      brickPath = path.join(
+        projectRoot,
+        'bricks',
+        'project_scaffold_${backendType.replaceAll('-', '_')}',
+      );
     }
-    
+
     if (verbose) {
       print('[VERBOSE] Script path: $scriptPath');
       print('[VERBOSE] Brick path: $brickPath');
       print('[VERBOSE] Brick exists: ${await Directory(brickPath).exists()}');
     }
-    
+
     final brick = Brick.path(brickPath);
     final generator = await MasonGenerator.fromBrick(brick);
 
@@ -253,11 +325,14 @@ Future<void> runScaffoldCommand(String backendType, bool withAuth, bool withUser
     }
 
     final target = DirectoryGeneratorTarget(Directory.current);
-    await generator.generate(target, vars: <String, dynamic>{
-      'backend_type': backendType,
-      'with_auth': withAuth,
-      'with_user': withUser,
-    });
+    await generator.generate(
+      target,
+      vars: <String, dynamic>{
+        'backend_type': backendType,
+        'with_auth': withAuth,
+        'with_user': withUser,
+      },
+    );
 
     print('✅ Project scaffold created successfully with $backendType backend!');
     print('📁 Created directories:');
@@ -274,7 +349,7 @@ Future<void> runScaffoldCommand(String backendType, bool withAuth, bool withUser
     if (withAuth) {
       await _generateFeature('auth', backendType, verbose);
     }
-    
+
     if (withUser) {
       await _generateFeature('user', backendType, verbose);
     }
@@ -284,7 +359,6 @@ Future<void> runScaffoldCommand(String backendType, bool withAuth, bool withUser
     print('   flutter pub get');
     print('   dart run build_runner build');
     print('   flutter run');
-    
   } catch (e) {
     print('❌ Error creating scaffold');
     print('');
@@ -297,11 +371,15 @@ Future<void> runScaffoldCommand(String backendType, bool withAuth, bool withUser
   }
 }
 
-Future<void> _generateFeature(String featureName, String backendType, bool verbose) async {
+Future<void> _generateFeature(
+  String featureName,
+  String backendType,
+  bool verbose,
+) async {
   try {
     String brickPath;
     final scriptPath = Platform.script.toFilePath();
-    
+
     // Determine brick name based on feature type
     String brickName;
     if (featureName == 'auth') {
@@ -311,26 +389,34 @@ Future<void> _generateFeature(String featureName, String backendType, bool verbo
     } else {
       brickName = 'feature_${backendType.replaceAll('-', '_')}';
     }
-    
+
     // Check if running from global installation
-    if (scriptPath.contains('.pub-cache') && scriptPath.contains('global_packages')) {
+    if (scriptPath.contains('.pub-cache') &&
+        scriptPath.contains('global_packages')) {
       // Global installation from git: find the git repository in pub-cache
       final homeDir = Platform.environment['HOME'] ?? Directory.current.path;
       final pubCacheDir = Directory(path.join(homeDir, '.pub-cache'));
       final gitDir = Directory(path.join(pubCacheDir.path, 'git'));
-      
+
       if (await gitDir.exists()) {
-        final beyondDirs = await gitDir.list()
-            .where((entity) => entity is Directory && entity.path.contains('beyondFlutterCli'))
+        final beyondDirs = await gitDir
+            .list()
+            .where(
+              (entity) =>
+                  entity is Directory &&
+                  entity.path.contains('beyondFlutterCli'),
+            )
             .cast<Directory>()
             .toList();
-            
+
         if (beyondDirs.isNotEmpty) {
           // Use the most recent version (should be the last in the list)
           final packageDir = beyondDirs.last.path;
           brickPath = path.join(packageDir, 'bricks', brickName);
         } else {
-          throw Exception('beyondFlutterCli git repository not found in pub-cache');
+          throw Exception(
+            'beyondFlutterCli git repository not found in pub-cache',
+          );
         }
       } else {
         throw Exception('Git directory not found in pub-cache');
@@ -349,7 +435,7 @@ Future<void> _generateFeature(String featureName, String backendType, bool verbo
       }
       brickPath = path.join(projectRoot, 'bricks', brickName);
     }
-    
+
     final brick = Brick.path(brickPath);
     final generator = await MasonGenerator.fromBrick(brick);
 
@@ -370,22 +456,35 @@ Future<void> _generateFeature(String featureName, String backendType, bool verbo
 
     // Run DI registration hook if it exists
     String hookPath;
-    if (scriptPath.contains('.pub-cache') && scriptPath.contains('global_packages')) {
+    if (scriptPath.contains('.pub-cache') &&
+        scriptPath.contains('global_packages')) {
       // Global installation from git: find the git repository in pub-cache
       final homeDir = Platform.environment['HOME'] ?? Directory.current.path;
       final pubCacheDir = Directory(path.join(homeDir, '.pub-cache'));
       final gitDir = Directory(path.join(pubCacheDir.path, 'git'));
-      
+
       if (await gitDir.exists()) {
-        final beyondDirs = await gitDir.list()
-            .where((entity) => entity is Directory && entity.path.contains('beyondFlutterCli'))
+        final beyondDirs = await gitDir
+            .list()
+            .where(
+              (entity) =>
+                  entity is Directory &&
+                  entity.path.contains('beyondFlutterCli'),
+            )
             .cast<Directory>()
             .toList();
-            
+
         if (beyondDirs.isNotEmpty) {
           // Use the most recent version (should be the last in the list)
           final packageDir = beyondDirs.last.path;
-          hookPath = path.join(packageDir, 'bricks', brickName, '__brick__', 'hooks', 'register_di.sh');
+          hookPath = path.join(
+            packageDir,
+            'bricks',
+            brickName,
+            '__brick__',
+            'hooks',
+            'register_di.sh',
+          );
         } else {
           hookPath = ''; // Skip hook if can't find repository
         }
@@ -403,9 +502,16 @@ Future<void> _generateFeature(String featureName, String backendType, bool verbo
         // Running directly: /path/to/project/bin/beyond_flutter_cli.dart
         projectRoot = path.dirname(path.dirname(scriptPath));
       }
-      hookPath = path.join(projectRoot, 'bricks', brickName, '__brick__', 'hooks', 'register_di.sh');
+      hookPath = path.join(
+        projectRoot,
+        'bricks',
+        brickName,
+        '__brick__',
+        'hooks',
+        'register_di.sh',
+      );
     }
-    
+
     if (await File(hookPath).exists()) {
       if (verbose) {
         print('[VERBOSE] Running DI registration hook for $featureName...');
@@ -416,7 +522,9 @@ Future<void> _generateFeature(String featureName, String backendType, bool verbo
         print('✅ $featureName DI registration completed');
       } else {
         if (verbose) {
-          print('⚠️  $featureName DI registration hook failed: ${result.stderr}');
+          print(
+            '⚠️  $featureName DI registration hook failed: ${result.stderr}',
+          );
         }
       }
     }
@@ -425,22 +533,34 @@ Future<void> _generateFeature(String featureName, String backendType, bool verbo
   }
 }
 
-Future<void> runFeatureCommand(List<String> args, String backendType, bool verbose) async {
+Future<void> runFeatureCommand(
+  List<String> args,
+  String backendType,
+  bool verbose,
+) async {
   if (args.isEmpty) {
     print('❌ Feature name is required');
-    print('Usage: beyond_flutter_cli feature <feature_name> --backend <backend_type>');
+    print(
+      'Usage: beyond_flutter_cli feature <feature_name> --backend <backend_type>',
+    );
     exit(1);
   }
 
   final featureName = args[0];
 
   try {
-    final brickPath = path.join(Directory.current.path, 'bricks', 'feature_${backendType.replaceAll('-', '_')}');
+    final brickPath = path.join(
+      Directory.current.path,
+      'bricks',
+      'feature_${backendType.replaceAll('-', '_')}',
+    );
     final brick = Brick.path(brickPath);
     final generator = await MasonGenerator.fromBrick(brick);
 
     if (verbose) {
-      print('[VERBOSE] Creating feature: $featureName with $backendType backend...');
+      print(
+        '[VERBOSE] Creating feature: $featureName with $backendType backend...',
+      );
     }
 
     final target = DirectoryGeneratorTarget(Directory.current);
@@ -452,7 +572,9 @@ Future<void> runFeatureCommand(List<String> args, String backendType, bool verbo
       },
     );
 
-    print('✅ Feature "$featureName" created successfully with $backendType backend!');
+    print(
+      '✅ Feature "$featureName" created successfully with $backendType backend!',
+    );
     print('📁 Created feature structure:');
     print('   - lib/features/$featureName/data/');
     print('   - lib/features/$featureName/domain/');
@@ -499,7 +621,7 @@ void main(List<String> arguments) async {
     if (results.flag('version')) {
       print('beyond_flutter_cli version: $version');
       print('');
-      print('🆕 What\'s New in v0.2.1:');
+      print('🆕 What\'s New in v0.2.4:');
       print('  • 🛡️ Smart project name validation and auto-sanitization');
       print('  • 🔄 Latest Flutter compatibility (deprecated options removed)');
       print('  • 🌙 Dark mode support with system theme detection');
@@ -507,7 +629,9 @@ void main(List<String> arguments) async {
       print('  • 📱 Android language selection (--android-language)');
       print('  • 🔧 Enhanced error handling with user-friendly messages');
       print('');
-      print('💡 Try: beyond_flutter_cli scaffold --backend firebase --org com.yourcompany --with-auth --with-user');
+      print(
+        '💡 Try: beyond_flutter_cli scaffold --backend firebase --org com.yourcompany --with-auth --with-user',
+      );
       return;
     }
     if (results.flag('verbose')) {
@@ -522,11 +646,11 @@ void main(List<String> arguments) async {
       final org = results.command!['org'] as String?;
       final androidLanguage = results.command!['android-language'] as String?;
       final iosLanguage = results.command!['ios-language'] as String?;
-      
+
       await runScaffoldCommand(
-        backendType, 
-        withAuth, 
-        withUser, 
+        backendType,
+        withAuth,
+        withUser,
         verbose,
         org: org,
         androidLanguage: androidLanguage,
@@ -537,7 +661,7 @@ void main(List<String> arguments) async {
 
     if (results.command?.name == 'feature') {
       final backendType = results.command!['backend'] as String;
-      await runFeatureCommand(results.rest, backendType, verbose);
+      await runFeatureCommand(results.command!.rest, backendType, verbose);
       return;
     }
 
@@ -567,7 +691,7 @@ void main(List<String> arguments) async {
 Future<void> runInitCommand(bool force, bool verbose) async {
   const configFileName = 'beyond_cli.yaml';
   final configFile = File(configFileName);
-  
+
   try {
     // Check if config file already exists
     if (await configFile.exists() && !force) {
@@ -576,11 +700,11 @@ Future<void> runInitCommand(bool force, bool verbose) async {
       print('💡 Or edit the existing file manually');
       return;
     }
-    
+
     if (verbose) {
       print('[VERBOSE] Creating configuration file: $configFileName');
     }
-    
+
     // Create default configuration
     const configContent = '''# Beyond Flutter CLI Configuration
 # This file stores default settings for your project generation
@@ -619,7 +743,7 @@ preferences:
 ''';
 
     await configFile.writeAsString(configContent);
-    
+
     print('✅ Configuration file created: $configFileName');
     print('');
     print('📝 Default settings:');
@@ -630,8 +754,9 @@ preferences:
     print('   Features: none');
     print('');
     print('💡 Edit $configFileName to customize your defaults');
-    print('💡 These settings will be used when options are not explicitly provided');
-    
+    print(
+      '💡 These settings will be used when options are not explicitly provided',
+    );
   } catch (e) {
     print('❌ Error creating configuration file');
     print('');
@@ -641,12 +766,17 @@ preferences:
 }
 
 void _handleCommonErrors(String error) {
-  if (error.contains('PathNotFoundException') || error.contains('brick not found')) {
+  if (error.contains('PathNotFoundException') ||
+      error.contains('brick not found')) {
     print('🔧 Error: Brick template not found');
-    print('💡 Solution: Ensure the CLI is properly installed and bricks directory exists');
+    print(
+      '💡 Solution: Ensure the CLI is properly installed and bricks directory exists',
+    );
   } else if (error.contains('PermissionDeniedException')) {
     print('🔧 Error: Permission denied');
-    print('💡 Solution: Check file/directory permissions or run with appropriate privileges');
+    print(
+      '💡 Solution: Check file/directory permissions or run with appropriate privileges',
+    );
   } else if (error.contains('DirectoryNotEmptyException')) {
     print('🔧 Error: Directory is not empty');
     print('💡 Solution: Use an empty directory or remove existing files');
@@ -658,5 +788,7 @@ void _handleCommonErrors(String error) {
     print('💡 Solution: Try running with --verbose flag for more details');
   }
   print('');
-  print('🆘 Need help? Check: https://github.com/beyondchasm/beyondFlutterCli/issues');
+  print(
+    '🆘 Need help? Check: https://github.com/beyondchasm/beyondFlutterCli/issues',
+  );
 }
