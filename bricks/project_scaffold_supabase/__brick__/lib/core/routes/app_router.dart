@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'route_names.dart';
 import '../screens/splash_screen.dart';
 import '../screens/home_screen.dart';
@@ -101,10 +103,52 @@ class AppRouter {
     // Error Handler
     errorBuilder: (context, state) => ErrorScreen(error: state.error),
 
-    // Redirect Logic - Simplified for initial demo
-    redirect: (context, state) {
-      // For demo purposes, allow access to all screens
-      // TODO: Implement proper authentication logic when auth feature is added
+    // Authentication-based Redirect Logic
+    redirect: (context, state) async {
+      final currentPath = state.uri.path;
+      
+      // 스플래시 화면은 항상 허용 (앱 시작 시 진입점)
+      if (currentPath == RouteNames.splash) {
+        return null;
+      }
+      
+      // 현재 사용자 인증 상태 확인
+      final isLoggedIn = Supabase.instance.client.auth.currentUser != null;
+      
+      // 온보딩 완료 여부 확인 (첫 사용자 경험)
+      final prefs = await SharedPreferences.getInstance();
+      final hasCompletedOnboarding = prefs.getBool('onboarding_completed') ?? false;
+      
+      // 온보딩을 완료하지 않은 경우 온보딩 페이지로 리디렉션
+      if (!hasCompletedOnboarding && currentPath != RouteNames.onboarding) {
+        return RouteNames.onboarding;
+      }
+      
+      // 인증 관련 페이지들 정의
+      final authPages = [
+        RouteNames.login,
+        RouteNames.register,
+        RouteNames.forgotPassword,
+      ];
+      
+      final isAuthPage = authPages.contains(currentPath);
+      
+      // 인증되지 않은 사용자의 경우
+      if (!isLoggedIn) {
+        // 온보딩 페이지나 인증 페이지에 있다면 그대로 진행
+        if (currentPath == RouteNames.onboarding || isAuthPage) {
+          return null;
+        }
+        // 그 외의 모든 페이지는 로그인 페이지로 리디렉션
+        return RouteNames.login;
+      }
+      
+      // 인증된 사용자가 인증 페이지에 접근하려는 경우 홈으로 리디렉션
+      if (isLoggedIn && isAuthPage) {
+        return RouteNames.home;
+      }
+      
+      // 그 외의 경우는 정상 진행
       return null;
     },
   );
@@ -184,16 +228,101 @@ class AppRouter {
   static bool canPop() => _router.canPop();
 }
 
-// Placeholder Screens (these should be replaced with actual implementations)
+// Placeholder Screens - These will be replaced by actual implementations when auth/onboarding features are added
 
 class LoginScreen extends StatelessWidget {
   const LoginScreen({super.key});
   
   @override
   Widget build(BuildContext context) {
-    return const Scaffold(
-      body: Center(child: Text('Login Screen')),
+    return Scaffold(
+      appBar: AppBar(
+        title: const Text('로그인'),
+        centerTitle: true,
+      ),
+      body: SafeArea(
+        child: Padding(
+          padding: const EdgeInsets.all(24.0),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              const Icon(Icons.login, size: 64, color: Colors.blue),
+              const SizedBox(height: 24),
+              const Text(
+                'Login Screen',
+                style: TextStyle(fontSize: 28, fontWeight: FontWeight.bold),
+              ),
+              const SizedBox(height: 16),
+              const Text(
+                'Auth feature를 추가하면 실제 로그인 화면으로 교체됩니다.',
+                textAlign: TextAlign.center,
+                style: TextStyle(color: Colors.grey, fontSize: 16),
+              ),
+              const SizedBox(height: 48),
+              
+              // 데모용 테스트 로그인 버튼
+              SizedBox(
+                width: double.infinity,
+                height: 50,
+                child: ElevatedButton.icon(
+                  onPressed: () => _handleTestLogin(context),
+                  icon: const Icon(Icons.person),
+                  label: const Text(
+                    '테스트 로그인 (데모용)',
+                    style: TextStyle(fontSize: 16),
+                  ),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Colors.blue,
+                    foregroundColor: Colors.white,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                  ),
+                ),
+              ),
+              
+              const SizedBox(height: 16),
+              
+              Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  TextButton(
+                    onPressed: () => AppRouter.go(RouteNames.register),
+                    child: const Text('회원가입'),
+                  ),
+                  const Text(' | '),
+                  TextButton(
+                    onPressed: () => AppRouter.go(RouteNames.forgotPassword),
+                    child: const Text('비밀번호 찾기'),
+                  ),
+                ],
+              ),
+            ],
+          ),
+        ),
+      ),
     );
+  }
+  
+  /// 데모용 테스트 로그인 - Auth feature가 추가되면 실제 구현으로 교체됩니다
+  Future<void> _handleTestLogin(BuildContext context) async {
+    // 데모용으로 바로 홈 화면으로 이동
+    // 실제로는 Supabase auth를 통한 로그인 처리가 들어갑니다
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (context) => const Center(
+        child: CircularProgressIndicator(),
+      ),
+    );
+    
+    // 로그인 시뮬레이션
+    await Future.delayed(const Duration(seconds: 1));
+    
+    if (context.mounted) {
+      Navigator.of(context).pop(); // 로딩 다이얼로그 닫기
+      AppRouter.go(RouteNames.home);
+    }
   }
 }
 
@@ -202,8 +331,30 @@ class RegisterScreen extends StatelessWidget {
   
   @override
   Widget build(BuildContext context) {
-    return const Scaffold(
-      body: Center(child: Text('Register Screen')),
+    return Scaffold(
+      appBar: AppBar(
+        title: const Text('회원가입'),
+        centerTitle: true,
+      ),
+      body: const Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(Icons.person_add, size: 64, color: Colors.green),
+            SizedBox(height: 16),
+            Text(
+              'Register Screen',
+              style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
+            ),
+            SizedBox(height: 8),
+            Text(
+              'Auth feature를 추가하면 실제 회원가입 화면으로 교체됩니다.',
+              textAlign: TextAlign.center,
+              style: TextStyle(color: Colors.grey),
+            ),
+          ],
+        ),
+      ),
     );
   }
 }
@@ -213,8 +364,30 @@ class ForgotPasswordScreen extends StatelessWidget {
   
   @override
   Widget build(BuildContext context) {
-    return const Scaffold(
-      body: Center(child: Text('Forgot Password Screen')),
+    return Scaffold(
+      appBar: AppBar(
+        title: const Text('비밀번호 재설정'),
+        centerTitle: true,
+      ),
+      body: const Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(Icons.lock_reset, size: 64, color: Colors.orange),
+            SizedBox(height: 16),
+            Text(
+              'Forgot Password Screen',
+              style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
+            ),
+            SizedBox(height: 8),
+            Text(
+              'Auth feature를 추가하면 실제 비밀번호 재설정 화면으로 교체됩니다.',
+              textAlign: TextAlign.center,
+              style: TextStyle(color: Colors.grey),
+            ),
+          ],
+        ),
+      ),
     );
   }
 }
@@ -303,8 +476,55 @@ class OnboardingScreen extends StatelessWidget {
   
   @override
   Widget build(BuildContext context) {
-    return const Scaffold(
-      body: Center(child: Text('Onboarding Screen')),
+    return Scaffold(
+      body: SafeArea(
+        child: Center(
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              const Icon(Icons.rocket_launch, size: 80, color: Colors.purple),
+              const SizedBox(height: 24),
+              const Text(
+                '앱에 오신 것을 환영합니다!',
+                style: TextStyle(fontSize: 28, fontWeight: FontWeight.bold),
+                textAlign: TextAlign.center,
+              ),
+              const SizedBox(height: 16),
+              const Padding(
+                padding: EdgeInsets.symmetric(horizontal: 32),
+                child: Text(
+                  'Onboarding feature를 추가하면 실제 온보딩 슬라이드로 교체됩니다.',
+                  textAlign: TextAlign.center,
+                  style: TextStyle(fontSize: 16, color: Colors.grey),
+                ),
+              ),
+              const SizedBox(height: 48),
+              ElevatedButton(
+                onPressed: () async {
+                  // 온보딩 완료 표시
+                  final prefs = await SharedPreferences.getInstance();
+                  await prefs.setBool('onboarding_completed', true);
+                  
+                  // 로그인 페이지로 이동
+                  if (context.mounted) {
+                    AppRouter.goLogin();
+                  }
+                },
+                style: ElevatedButton.styleFrom(
+                  minimumSize: const Size(200, 50),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(25),
+                  ),
+                ),
+                child: const Text(
+                  '시작하기',
+                  style: TextStyle(fontSize: 18),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
     );
   }
 }

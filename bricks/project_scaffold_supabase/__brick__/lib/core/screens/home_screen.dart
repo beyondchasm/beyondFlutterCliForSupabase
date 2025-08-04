@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import '../theme/theme_colors.dart';
 import '../theme/theme_text_styles.dart';
 import '../theme/theme_provider.dart';
@@ -37,7 +39,7 @@ class HomeScreen extends StatelessWidget {
                   // Navigate to settings
                   break;
                 case 'logout':
-                  // Handle logout if auth feature is available
+                  _handleLogout(context);
                   break;
               }
             },
@@ -337,5 +339,53 @@ class HomeScreen extends StatelessWidget {
         ],
       ),
     );
+  }
+
+  /// 로그아웃 처리 메서드
+  /// 사용자 확인 후 Supabase 로그아웃 및 로그인 화면으로 이동
+  Future<void> _handleLogout(BuildContext context) async {
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('로그아웃'),
+        content: const Text('정말 로그아웃하시겠습니까?'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(false),
+            child: const Text('취소'),
+          ),
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(true),
+            style: TextButton.styleFrom(foregroundColor: Colors.red),
+            child: const Text('로그아웃'),
+          ),
+        ],
+      ),
+    );
+
+    if (confirmed == true && context.mounted) {
+      try {
+        // Supabase 로그아웃
+        await Supabase.instance.client.auth.signOut();
+        
+        // 온보딩 완료 상태는 유지 (다시 온보딩 보지 않도록)
+        // 필요하다면 여기서 SharedPreferences.setBool('onboarding_completed', false) 호출
+        
+        // 로그인 화면으로 이동
+        if (context.mounted) {
+          context.go(RouteNames.login);
+        }
+      } catch (e) {
+        // 로그아웃 실패 시 에러 표시
+        if (context.mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text('로그아웃 중 오류가 발생했습니다: $e'),
+              backgroundColor: Colors.red,
+            ),
+          );
+        }
+      }
+    }
   }
 }

@@ -60,6 +60,7 @@ class RouteNames {
       register,
       forgotPassword,
       resetPassword,
+      onboarding,
       about,
       privacy,
       terms,

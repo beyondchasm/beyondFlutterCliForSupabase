@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import '../theme/theme_colors.dart';
 import '../theme/theme_text_styles.dart';
 import '../routes/route_names.dart';
@@ -50,10 +52,36 @@ class _SplashScreenState extends State<SplashScreen>
   }
 
   Future<void> _navigateToHome() async {
+    // 스플래시 애니메이션과 초기화 대기
     await Future.delayed(const Duration(seconds: 3));
     
-    if (mounted) {
-      context.go(RouteNames.home);
+    if (!mounted) return;
+    
+    try {
+      // 온보딩 완료 여부 확인
+      final prefs = await SharedPreferences.getInstance();
+      final hasCompletedOnboarding = prefs.getBool('onboarding_completed') ?? false;
+      
+      // 온보딩을 완료하지 않은 경우 온보딩 페이지로
+      if (!hasCompletedOnboarding) {
+        context.go(RouteNames.onboarding);
+        return;
+      }
+      
+      // 인증 상태 확인
+      final currentUser = Supabase.instance.client.auth.currentUser;
+      
+      if (currentUser != null) {
+        // 로그인된 사용자는 홈 화면으로
+        context.go(RouteNames.home);
+      } else {
+        // 로그인되지 않은 사용자는 로그인 화면으로
+        context.go(RouteNames.login);
+      }
+    } catch (e) {
+      // 오류 발생 시 기본적으로 온보딩 페이지로
+      debugPrint('스플래시 화면 네비게이션 오류: $e');
+      context.go(RouteNames.onboarding);
     }
   }
 
