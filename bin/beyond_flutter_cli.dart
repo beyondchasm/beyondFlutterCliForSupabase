@@ -3,7 +3,7 @@ import 'package:args/args.dart';
 import 'package:mason/mason.dart';
 import 'package:path/path.dart' as path;
 
-const String version = '0.2.5';
+const String version = '0.2.61';
 
 ArgParser buildParser() {
   return ArgParser()
