@@ -48,11 +48,11 @@ class ServiceLocator {
   }
 
   // Unregister service
-  static bool unregister<T extends Object>() {
-    if (_getIt.isRegistered<T>()) {
-      return _getIt.unregister<T>();
-    }
-    return false;
+  static Future<bool> unregister<T extends Object>() async {
+    if (!_getIt.isRegistered<T>()) return false;
+    // FutureOr<dynamic> 이므로 await 처리
+    await _getIt.unregister<T>();
+    return true;
   }
 
   // Reset all services (useful for testing)
@@ -63,11 +63,12 @@ class ServiceLocator {
   // Get all registered services info (for debugging)
   static Map<String, dynamic> getRegisteredServices() {
     final services = <String, dynamic>{};
-    
+
     // Note: GetIt doesn't provide a direct way to list all registered services
     // This is a placeholder for debugging purposes
-    services['total_registered'] = 'Use GetIt.instance.allReady() for detailed info';
-    
+    services['total_registered'] =
+        'Use GetIt.instance.allReady() for detailed info';
+
     return services;
   }
 
@@ -94,7 +95,10 @@ class ServiceLocator {
 
 // Extension for easier access
 extension ServiceLocatorExtension on Type {
-  T get<T>() => ServiceLocator.get<T>();
-  T? getOptional<T>() => ServiceLocator.getOptional<T>();
-  bool get isRegistered => ServiceLocator.isRegistered<Object>();
+  T getService<T extends Object>() => ServiceLocator.get<T>();
+
+  T? getOptionalService<T extends Object>() => ServiceLocator.getOptional<T>();
+
+  bool isServiceRegistered<T extends Object>() =>
+      ServiceLocator.isRegistered<T>();
 }

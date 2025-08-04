@@ -7,9 +7,11 @@ import '../../../../core/di/service_locator.dart';
 
 class AuthRepositoryImpl implements AuthRepository {
   final RestAuthRemoteDataSource _remoteDataSource;
-  final StreamController<UserEntity?> _authStateController = StreamController<UserEntity?>.broadcast();
+  final StreamController<UserEntity?> _authStateController =
+      StreamController<UserEntity?>.broadcast();
 
-  AuthRepositoryImpl() : _remoteDataSource = ServiceLocator.get<RestAuthRemoteDataSource>() {
+  AuthRepositoryImpl()
+    : _remoteDataSource = ServiceLocator.get<RestAuthRemoteDataSource>() {
     _initializeAuthState();
   }
 
@@ -19,9 +21,15 @@ class AuthRepositoryImpl implements AuthRepository {
   }
 
   @override
-  Future<AuthResult> signInWithEmailAndPassword(String email, String password) async {
+  Future<AuthResult> signInWithEmailAndPassword(
+    String email,
+    String password,
+  ) async {
     try {
-      final userModel = await _remoteDataSource.signInWithEmailAndPassword(email, password);
+      final userModel = await _remoteDataSource.signInWithEmailAndPassword(
+        email,
+        password,
+      );
       final user = userModel.toEntity();
       _authStateController.add(user);
       return AuthResult.success(user);
@@ -31,9 +39,15 @@ class AuthRepositoryImpl implements AuthRepository {
   }
 
   @override
-  Future<AuthResult> signUpWithEmailAndPassword(String email, String password) async {
+  Future<AuthResult> signUpWithEmailAndPassword(
+    String email,
+    String password,
+  ) async {
     try {
-      final userModel = await _remoteDataSource.signUpWithEmailAndPassword(email, password);
+      final userModel = await _remoteDataSource.signUpWithEmailAndPassword(
+        email,
+        password,
+      );
       final user = userModel.toEntity();
       _authStateController.add(user);
       return AuthResult.success(user);
@@ -52,12 +66,15 @@ class AuthRepositoryImpl implements AuthRepository {
   Future<AuthResult> resetPassword(String email) async {
     try {
       await _remoteDataSource.resetPassword(email);
-      return const AuthResult.success(UserEntity(
-        id: '',
-        email: '',
-        emailConfirmed: false,
-        createdAt: null,
-      ) as UserEntity);
+      return AuthResult.success(
+        UserEntity(
+              id: '',
+              email: '',
+              emailConfirmed: false,
+              createdAt: DateTime.now(),
+            )
+            as UserEntity,
+      );
     } catch (e) {
       return AuthResult.failure(e.toString().replaceFirst('Exception: ', ''));
     }
@@ -76,7 +93,9 @@ class AuthRepositoryImpl implements AuthRepository {
   Future<AuthResult> signInWithGoogle() async {
     // REST API doesn't typically support Google Sign-In directly
     // This would need to be implemented with OAuth2 flow
-    return const AuthResult.failure('Google Sign-In not supported with REST API backend');
+    return const AuthResult.failure(
+      'Google Sign-In not supported with REST API backend',
+    );
   }
 
   @override

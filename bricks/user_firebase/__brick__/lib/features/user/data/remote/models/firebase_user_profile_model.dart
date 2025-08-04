@@ -2,8 +2,8 @@ import 'package:freezed_annotation/freezed_annotation.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import '../../../domain/entities/user_profile.dart';
 
-part 'freezed/firebase_user_profile_model.freezed.dart';
-part 'freezed/firebase_user_profile_model.g.dart';
+part 'firebase_user_profile_model.freezed.dart';
+part 'firebase_user_profile_model.g.dart';
 
 @freezed
 class FirebaseUserProfileModel with _$FirebaseUserProfileModel {

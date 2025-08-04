@@ -1,8 +1,8 @@
 import 'package:freezed_annotation/freezed_annotation.dart';
 import '../../../domain/entities/{{feature_name}}.dart';
 
-part 'freezed/{{feature_name}}_remote_model.freezed.dart';
-part 'freezed/{{feature_name}}_remote_model.g.dart';
+part '{{feature_name}}_remote_model.freezed.dart';
+part '{{feature_name}}_remote_model.g.dart';
 
 @freezed
 class {{feature_name.pascalCase()}}RemoteModel with _${{feature_name.pascalCase()}}RemoteModel {

@@ -81,7 +81,7 @@ class SupabaseAuthRemoteDataSourceImpl implements SupabaseAuthRemoteDataSource {
   Future<SupabaseUserModel> signInWithGoogle() async {
     try {
       final response = await _supabaseClient.auth.signInWithOAuth(
-        Provider.google,
+        OAuthProvider.google,
       );
       
       if (response == false) {

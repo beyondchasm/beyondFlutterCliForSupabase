@@ -1,8 +1,8 @@
 import 'package:freezed_annotation/freezed_annotation.dart';
 import '../../../domain/entities/user_profile.dart';
 
-part 'freezed/supabase_user_profile_model.freezed.dart';
-part 'freezed/supabase_user_profile_model.g.dart';
+part 'supabase_user_profile_model.freezed.dart';
+part 'supabase_user_profile_model.g.dart';
 
 @freezed
 class SupabaseUserProfileModel with _$SupabaseUserProfileModel {

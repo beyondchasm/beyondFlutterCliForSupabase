@@ -2,8 +2,8 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:freezed_annotation/freezed_annotation.dart';
 import '../../../domain/entities/user_entity.dart';
 
-part 'freezed/supabase_user_model.freezed.dart';
-part 'freezed/supabase_user_model.g.dart';
+part 'supabase_user_model.freezed.dart';
+part 'supabase_user_model.g.dart';
 
 @freezed
 class SupabaseUserModel with _$SupabaseUserModel {

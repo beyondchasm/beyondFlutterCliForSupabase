@@ -1,8 +1,8 @@
 import 'package:freezed_annotation/freezed_annotation.dart';
 import '../../../domain/entities/user_profile.dart';
 
-part 'freezed/rest_user_profile_model.freezed.dart';
-part 'freezed/rest_user_profile_model.g.dart';
+part 'rest_user_profile_model.freezed.dart';
+part 'rest_user_profile_model.g.dart';
 
 @freezed
 class RestUserProfileModel with _$RestUserProfileModel {

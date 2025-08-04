@@ -1,7 +1,7 @@
 import 'package:freezed_annotation/freezed_annotation.dart';
 
-part 'freezed/{{feature_name}}.freezed.dart';
-part 'freezed/{{feature_name}}.g.dart';
+part '{{feature_name}}.freezed.dart';
+part '{{feature_name}}.g.dart';
 
 @freezed
 class {{feature_name.pascalCase()}} with _${{feature_name.pascalCase()}} {

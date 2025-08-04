@@ -2,8 +2,8 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:freezed_annotation/freezed_annotation.dart';
 import '../../../domain/entities/user_entity.dart';
 
-part 'freezed/firebase_user_model.freezed.dart';
-part 'freezed/firebase_user_model.g.dart';
+part 'firebase_user_model.freezed.dart';
+part 'firebase_user_model.g.dart';
 
 @freezed
 class FirebaseUserModel with _$FirebaseUserModel {

@@ -7,12 +7,19 @@ import '../../../../core/di/service_locator.dart';
 class AuthRepositoryImpl implements AuthRepository {
   final FirebaseAuthRemoteDataSource _remoteDataSource;
 
-  AuthRepositoryImpl() : _remoteDataSource = ServiceLocator.get<FirebaseAuthRemoteDataSource>();
+  AuthRepositoryImpl()
+    : _remoteDataSource = ServiceLocator.get<FirebaseAuthRemoteDataSource>();
 
   @override
-  Future<AuthResult> signInWithEmailAndPassword(String email, String password) async {
+  Future<AuthResult> signInWithEmailAndPassword(
+    String email,
+    String password,
+  ) async {
     try {
-      final userModel = await _remoteDataSource.signInWithEmailAndPassword(email, password);
+      final userModel = await _remoteDataSource.signInWithEmailAndPassword(
+        email,
+        password,
+      );
       return AuthResult.success(userModel.toEntity());
     } catch (e) {
       return AuthResult.failure(e.toString());
@@ -20,9 +27,15 @@ class AuthRepositoryImpl implements AuthRepository {
   }
 
   @override
-  Future<AuthResult> createUserWithEmailAndPassword(String email, String password) async {
+  Future<AuthResult> createUserWithEmailAndPassword(
+    String email,
+    String password,
+  ) async {
     try {
-      final userModel = await _remoteDataSource.createUserWithEmailAndPassword(email, password);
+      final userModel = await _remoteDataSource.createUserWithEmailAndPassword(
+        email,
+        password,
+      );
       return AuthResult.success(userModel.toEntity());
     } catch (e) {
       return AuthResult.failure(e.toString());
@@ -38,12 +51,15 @@ class AuthRepositoryImpl implements AuthRepository {
   Future<AuthResult> resetPassword(String email) async {
     try {
       await _remoteDataSource.resetPassword(email);
-      return const AuthResult.success(UserEntity(
-        uid: '',
-        email: '',
-        emailVerified: false,
-        createdAt: null,
-      ) as UserEntity);
+      return AuthResult.success(
+        UserEntity(
+              uid: '',
+              email: '',
+              emailVerified: false,
+              createdAt: DateTime.now(),
+            )
+            as UserEntity,
+      );
     } catch (e) {
       return AuthResult.failure(e.toString());
     }
@@ -57,7 +73,9 @@ class AuthRepositoryImpl implements AuthRepository {
 
   @override
   Stream<UserEntity?> get authStateChanges {
-    return _remoteDataSource.authStateChanges.map((userModel) => userModel?.toEntity());
+    return _remoteDataSource.authStateChanges.map(
+      (userModel) => userModel?.toEntity(),
+    );
   }
 
   @override
