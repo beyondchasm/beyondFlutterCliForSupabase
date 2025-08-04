@@ -24,48 +24,48 @@ import '\''../../features/user/presentation/providers/user_provider.dart'\'';\
     }
 
     # Add registrations
-    grep -q "getit.registerLazySingleton<SupabaseUserRemoteDataSource>" "$DI_FILE" || {
+    grep -q "getIt.registerLazySingleton<SupabaseUserRemoteDataSource>" "$DI_FILE" || {
         sed -i '' '/void _registerDataSources()/,/^  }$/{
             /^  }$/ i\
 \
     // User Supabase Data Sources\
-    getit.registerLazySingleton<SupabaseUserRemoteDataSource>(\
+    getIt.registerLazySingleton<SupabaseUserRemoteDataSource>(\
       () => SupabaseUserRemoteDataSourceImpl(),\
     );\
 
         }' "$DI_FILE"
     }
 
-    grep -q "getit.registerLazySingleton<UserRepository>" "$DI_FILE" || {
+    grep -q "getIt.registerLazySingleton<UserRepository>" "$DI_FILE" || {
         sed -i '' '/void _registerRepositories()/,/^  }$/{
             /^  }$/ i\
 \
     // User Repository\
-    getit.registerLazySingleton<UserRepository>(\
+    getIt.registerLazySingleton<UserRepository>(\
       () => UserRepositoryImpl(),\
     );\
 
         }' "$DI_FILE"
     }
 
-    grep -q "getit.registerLazySingleton<GetUserProfileUseCase>" "$DI_FILE" || {
+    grep -q "getIt.registerLazySingleton<GetUserProfileUseCase>" "$DI_FILE" || {
         sed -i '' '/void _registerUseCases()/,/^  }$/{
             /^  }$/ i\
 \
     // User Use Cases\
-    getit.registerLazySingleton<GetUserProfileUseCase>(() => GetUserProfileUseCase());\
-    getit.registerLazySingleton<UpdateUserProfileUseCase>(() => UpdateUserProfileUseCase());\
-    getit.registerLazySingleton<DeleteUserProfileUseCase>(() => DeleteUserProfileUseCase());\
+    getIt.registerLazySingleton<GetUserProfileUseCase>(() => GetUserProfileUseCase());\
+    getIt.registerLazySingleton<UpdateUserProfileUseCase>(() => UpdateUserProfileUseCase());\
+    getIt.registerLazySingleton<DeleteUserProfileUseCase>(() => DeleteUserProfileUseCase());\
 
         }' "$DI_FILE"
     }
 
-    grep -q "getit.registerFactory<UserProvider>" "$DI_FILE" || {
+    grep -q "getIt.registerFactory<UserProvider>" "$DI_FILE" || {
         sed -i '' '/void _registerProviders()/,/^  }$/{
             /^  }$/ i\
 \
     // User Provider\
-    getit.registerFactory<UserProvider>(() => UserProvider());\
+    getIt.registerFactory<UserProvider>(() => UserProvider());\
 
         }' "$DI_FILE"
     }

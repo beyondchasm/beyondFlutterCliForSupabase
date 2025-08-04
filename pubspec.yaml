@@ -1,6 +1,6 @@
 name: beyond_flutter_cli
 description: A powerful CLI tool for creating Flutter projects with Clean Architecture pattern
-version: 0.2.3
+version: 0.2.4
 homepage: https://github.com/beyondchasm/beyondFlutterCli
 repository: https://github.com/beyondchasm/beyondFlutterCli
 

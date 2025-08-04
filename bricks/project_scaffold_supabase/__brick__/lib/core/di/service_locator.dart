@@ -1,7 +1,7 @@
 import 'package:get_it/get_it.dart';
 
 class ServiceLocator {
-  static final GetIt _getIt = GetIt.instance;
+  static final GetIt _getIt = getIt.instance;
 
   // Generic get method
   static T get<T extends Object>() {
@@ -67,7 +67,7 @@ class ServiceLocator {
     // Note: GetIt doesn't provide a direct way to list all registered services
     // This is a placeholder for debugging purposes
     services['total_registered'] =
-        'Use GetIt.instance.allReady() for detailed info';
+        'Use getIt.instance.allReady() for detailed info';
 
     return services;
   }

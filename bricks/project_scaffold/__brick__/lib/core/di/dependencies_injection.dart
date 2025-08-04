@@ -2,7 +2,7 @@ import 'package:get_it/get_it.dart';
 import '../config/app_config.dart';
 import '../config/environment.dart';
 
-final GetIt getIt = GetIt.instance;
+final GetIt getIt = getIt.instance;
 
 class DependenciesInjection {
   static Future<void> init() async {

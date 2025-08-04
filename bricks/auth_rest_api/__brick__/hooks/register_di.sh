@@ -26,50 +26,50 @@ import '\''../../features/auth/presentation/providers/auth_provider.dart'\'';\
     }
 
     # Add registrations
-    grep -q "getit.registerLazySingleton<RestAuthRemoteDataSource>" "$DI_FILE" || {
+    grep -q "getIt.registerLazySingleton<RestAuthRemoteDataSource>" "$DI_FILE" || {
         sed -i '' '/void _registerDataSources()/,/^  }$/{
             /^  }$/ i\
 \
     // Auth REST API Data Sources\
-    getit.registerLazySingleton<RestAuthRemoteDataSource>(\
+    getIt.registerLazySingleton<RestAuthRemoteDataSource>(\
       () => RestAuthRemoteDataSourceImpl(),\
     );\
 
         }' "$DI_FILE"
     }
 
-    grep -q "getit.registerLazySingleton<AuthRepository>" "$DI_FILE" || {
+    grep -q "getIt.registerLazySingleton<AuthRepository>" "$DI_FILE" || {
         sed -i '' '/void _registerRepositories()/,/^  }$/{
             /^  }$/ i\
 \
     // Auth Repository\
-    getit.registerLazySingleton<AuthRepository>(\
+    getIt.registerLazySingleton<AuthRepository>(\
       () => AuthRepositoryImpl(),\
     );\
 
         }' "$DI_FILE"
     }
 
-    grep -q "getit.registerLazySingleton<SignInUseCase>" "$DI_FILE" || {
+    grep -q "getIt.registerLazySingleton<SignInUseCase>" "$DI_FILE" || {
         sed -i '' '/void _registerUseCases()/,/^  }$/{
             /^  }$/ i\
 \
     // Auth Use Cases\
-    getit.registerLazySingleton<SignInUseCase>(() => SignInUseCase());\
-    getit.registerLazySingleton<SignUpUseCase>(() => SignUpUseCase());\
-    getit.registerLazySingleton<SignOutUseCase>(() => SignOutUseCase());\
-    getit.registerLazySingleton<ResetPasswordUseCase>(() => ResetPasswordUseCase());\
-    getit.registerLazySingleton<GetCurrentUserUseCase>(() => GetCurrentUserUseCase());\
+    getIt.registerLazySingleton<SignInUseCase>(() => SignInUseCase());\
+    getIt.registerLazySingleton<SignUpUseCase>(() => SignUpUseCase());\
+    getIt.registerLazySingleton<SignOutUseCase>(() => SignOutUseCase());\
+    getIt.registerLazySingleton<ResetPasswordUseCase>(() => ResetPasswordUseCase());\
+    getIt.registerLazySingleton<GetCurrentUserUseCase>(() => GetCurrentUserUseCase());\
 
         }' "$DI_FILE"
     }
 
-    grep -q "getit.registerFactory<AuthProvider>" "$DI_FILE" || {
+    grep -q "getIt.registerFactory<AuthProvider>" "$DI_FILE" || {
         sed -i '' '/void _registerProviders()/,/^  }$/{
             /^  }$/ i\
 \
     // Auth Provider\
-    getit.registerFactory<AuthProvider>(() => AuthProvider());\
+    getIt.registerFactory<AuthProvider>(() => AuthProvider());\
 
         }' "$DI_FILE"
     }
