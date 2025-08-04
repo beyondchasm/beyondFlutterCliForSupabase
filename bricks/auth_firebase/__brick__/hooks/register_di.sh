@@ -26,50 +26,50 @@ import '\''../../features/auth/presentation/providers/auth_provider.dart'\'';\
     }
 
     # Add registrations
-    grep -q "registerLazySingleton<FirebaseAuthRemoteDataSource>" "$DI_FILE" || {
+    grep -q "getit.registerLazySingleton<FirebaseAuthRemoteDataSource>" "$DI_FILE" || {
         sed -i '' '/void _registerDataSources()/,/^  }$/{
             /^  }$/ i\
 \
     // Auth Firebase Data Sources\
-    registerLazySingleton<FirebaseAuthRemoteDataSource>(\
+    getit.registerLazySingleton<FirebaseAuthRemoteDataSource>(\
       () => FirebaseAuthRemoteDataSourceImpl(),\
     );\
 
         }' "$DI_FILE"
     }
 
-    grep -q "registerLazySingleton<AuthRepository>" "$DI_FILE" || {
+    grep -q "getit.registerLazySingleton<AuthRepository>" "$DI_FILE" || {
         sed -i '' '/void _registerRepositories()/,/^  }$/{
             /^  }$/ i\
 \
     // Auth Repository\
-    registerLazySingleton<AuthRepository>(\
+    getit.registerLazySingleton<AuthRepository>(\
       () => AuthRepositoryImpl(),\
     );\
 
         }' "$DI_FILE"
     }
 
-    grep -q "registerLazySingleton<SignInUseCase>" "$DI_FILE" || {
+    grep -q "getit.registerLazySingleton<SignInUseCase>" "$DI_FILE" || {
         sed -i '' '/void _registerUseCases()/,/^  }$/{
             /^  }$/ i\
 \
     // Auth Use Cases\
-    registerLazySingleton<SignInUseCase>(() => SignInUseCase());\
-    registerLazySingleton<SignUpUseCase>(() => SignUpUseCase());\
-    registerLazySingleton<SignOutUseCase>(() => SignOutUseCase());\
-    registerLazySingleton<ResetPasswordUseCase>(() => ResetPasswordUseCase());\
-    registerLazySingleton<GetCurrentUserUseCase>(() => GetCurrentUserUseCase());\
+    getit.registerLazySingleton<SignInUseCase>(() => SignInUseCase());\
+    getit.registerLazySingleton<SignUpUseCase>(() => SignUpUseCase());\
+    getit.registerLazySingleton<SignOutUseCase>(() => SignOutUseCase());\
+    getit.registerLazySingleton<ResetPasswordUseCase>(() => ResetPasswordUseCase());\
+    getit.registerLazySingleton<GetCurrentUserUseCase>(() => GetCurrentUserUseCase());\
 
         }' "$DI_FILE"
     }
 
-    grep -q "registerFactory<AuthProvider>" "$DI_FILE" || {
+    grep -q "getit.registerFactory<AuthProvider>" "$DI_FILE" || {
         sed -i '' '/void _registerProviders()/,/^  }$/{
             /^  }$/ i\
 \
     // Auth Provider\
-    registerFactory<AuthProvider>(() => AuthProvider());\
+    getit.registerFactory<AuthProvider>(() => AuthProvider());\
 
         }' "$DI_FILE"
     }

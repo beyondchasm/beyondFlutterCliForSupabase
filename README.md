@@ -19,6 +19,7 @@ Flutter Clean Architecture 프로젝트를 위한 강력한 CLI 도구입니다.
 - **⚙️ 설정 파일 관리**: YAML 기반 프로젝트 기본값 설정
 - **🛡️ 스마트 프로젝트 이름 검증**: 유효하지 않은 디렉토리명을 자동으로 Dart 패키지 규칙에 맞게 변환
 - **🔄 최신 Flutter 호환성**: Deprecated 옵션 제거로 최신 Flutter 버전과 완벽 호환
+- **🌊 Riverpod 통합**: Provider와 Riverpod 동시 지원으로 현대적인 상태 관리 제공
 
 ## 📦 설치
 
@@ -739,7 +740,51 @@ feature_name/
 └── presentation/   # UI 관련
 ```
 
-## 🐛 최신 수정 사항 (v0.2.2)
+## 🆕 최신 업데이트 (v0.2.3)
+
+### ✨ 새로운 기능들
+
+#### 1. 🌊 **Riverpod 통합 지원**
+```yaml
+dependencies:
+  # 기존 Provider와 함께 Riverpod 지원
+  provider: ^6.1.2
+  flutter_riverpod: ^2.6.1  # 새로 추가!
+```
+
+**주요 특징:**
+- 🔄 **동시 지원**: Provider와 Riverpod을 모두 사용할 수 있어 점진적 마이그레이션 가능
+- ⚡ **현대적 상태 관리**: Riverpod의 타입 안전성과 성능 최적화 활용
+- 🧩 **유연한 선택**: 프로젝트 요구사항에 따라 적절한 상태 관리 도구 선택 가능
+
+#### 2. 🔧 **Supabase DI 시스템 완전 구현**
+```dart
+// 실제 동작하는 의존성 주입 시스템
+static Future<void> _registerExternalServices() async {
+  await Supabase.initialize(
+    url: 'YOUR_SUPABASE_URL',
+    anonKey: 'YOUR_SUPABASE_ANON_KEY',
+    debug: EnvironmentConfig.enableLogging,
+  );
+  
+  getIt.registerSingleton<SupabaseClient>(Supabase.instance.client);
+  getIt.registerSingleton<GoTrueClient>(Supabase.instance.client.auth);
+}
+```
+
+**개선사항:**
+- ✅ **완전한 구현**: TODO 주석에서 실제 동작하는 코드로 전환
+- 🏗️ **실용적 DI**: SharedPreferences, Dio, Supabase 클라이언트 자동 등록
+- 🔍 **디버그 로깅**: 개발 환경에서 상세한 로그 제공
+- 🛡️ **에러 처리**: 타입 안전한 서비스 조회 및 예외 처리
+
+#### 3. 📦 **개선된 pubspec.yaml 템플릿**
+모든 백엔드 타입의 프로젝트 스캐폴드에 최신 의존성 추가:
+- `flutter_riverpod: ^2.6.1` 추가
+- 기존 Provider와 공존하여 단계적 전환 지원
+- 최신 버전의 패키지들로 업데이트
+
+## 🐛 이전 수정 사항 (v0.2.2)
 
 ### ✅ 해결된 버그들
 
