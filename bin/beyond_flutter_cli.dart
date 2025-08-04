@@ -628,7 +628,7 @@ Future<void> runFeatureCommand(
         print('[VERBOSE] Running DI registration hook...');
       }
       final result = await Process.run('bash', [hookPath]);
-      if (result.exitCode == 0) {ㄲ
+      if (result.exitCode == 0) {
         print('✅ DI registration completed');
       } else {
         print('⚠️  DI registration hook failed: ${result.stderr}');
