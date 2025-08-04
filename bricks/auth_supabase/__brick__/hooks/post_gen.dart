@@ -24,10 +24,10 @@ Future<void> run(HookContext context) async {
     '''
 
     // Auth Supabase Data Sources
-    getIt.registerLazySingleton<SupabaseAuthRemoteDataSource>(
+    ServiceLocator.registerLazySingleton<SupabaseAuthRemoteDataSource>(
       () => SupabaseAuthRemoteDataSourceImpl(),
     );''',
-    'getIt.registerLazySingleton<SupabaseAuthRemoteDataSource>',
+    'ServiceLocator.registerLazySingleton<SupabaseAuthRemoteDataSource>',
   );
 
   _addRegistration(
@@ -36,10 +36,10 @@ Future<void> run(HookContext context) async {
     '''
 
     // Auth Repository
-    getIt.registerLazySingleton<AuthRepository>(
+    ServiceLocator.registerLazySingleton<AuthRepository>(
       () => AuthRepositoryImpl(),
     );''',
-    'getIt.registerLazySingleton<AuthRepository>',
+    'ServiceLocator.registerLazySingleton<AuthRepository>',
   );
 
   _addRegistration(
@@ -48,12 +48,12 @@ Future<void> run(HookContext context) async {
     '''
 
     // Auth Use Cases
-    getIt.registerLazySingleton<SignInUseCase>(() => SignInUseCase());
-    getIt.registerLazySingleton<SignUpUseCase>(() => SignUpUseCase());
-    getIt.registerLazySingleton<SignOutUseCase>(() => SignOutUseCase());
-    getIt.registerLazySingleton<ResetPasswordUseCase>(() => ResetPasswordUseCase());
-    getIt.registerLazySingleton<GetCurrentUserUseCase>(() => GetCurrentUserUseCase());''',
-    'getIt.registerLazySingleton<SignInUseCase>',
+    ServiceLocator.registerLazySingleton<SignInUseCase>(() => SignInUseCase());
+    ServiceLocator.registerLazySingleton<SignUpUseCase>(() => SignUpUseCase());
+    ServiceLocator.registerLazySingleton<SignOutUseCase>(() => SignOutUseCase());
+    ServiceLocator.registerLazySingleton<ResetPasswordUseCase>(() => ResetPasswordUseCase());
+    ServiceLocator.registerLazySingleton<GetCurrentUserUseCase>(() => GetCurrentUserUseCase());''',
+    'ServiceLocator.registerLazySingleton<SignInUseCase>',
   );
 
   _addRegistration(
@@ -62,8 +62,8 @@ Future<void> run(HookContext context) async {
     '''
 
     // Auth Provider
-    getIt.registerFactory<AuthProvider>(() => AuthProvider());''',
-    'getIt.registerFactory<AuthProvider>',
+    ServiceLocator.registerFactory<AuthProvider>(() => AuthProvider());''',
+    'ServiceLocator.registerFactory<AuthProvider>',
   );
 
   final newContent = lines.join('\n');

@@ -1,11 +1,12 @@
-import 'package:get_it/get_it.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:dio/dio.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import '../config/app_config.dart';
 import '../config/environment.dart';
-
-final GetIt getIt = GetIt.instance;
+import '../services/error_handler_service.dart';
+import '../services/loading_service.dart';
+import '../services/secure_storage_service.dart';
+import 'service_locator.dart';
 
 class DependenciesInjection {
   static Future<void> init() async {
@@ -34,14 +35,21 @@ class DependenciesInjection {
 
   static Future<void> _registerCoreServices() async {
     // App Configuration
-    getIt.registerSingleton<AppConfig>(AppConfig());
+    ServiceLocator.registerSingleton<AppConfig>(AppConfig());
 
     // Environment Configuration
-    getIt.registerSingleton<EnvironmentConfig>(EnvironmentConfig());
+    ServiceLocator.registerSingleton<EnvironmentConfig>(EnvironmentConfig());
 
     // SharedPreferences
     final sharedPreferences = await SharedPreferences.getInstance();
-    getIt.registerSingleton<SharedPreferences>(sharedPreferences);
+    ServiceLocator.registerSingleton<SharedPreferences>(sharedPreferences);
+
+    // Core Services
+    ServiceLocator.registerSingleton<LoadingService>(LoadingService.instance);
+    // ErrorHandlerService는 static 메서드만 사용하므로 등록하지 않음
+    
+    // Secure Storage Service
+    // SecureStorageService는 static 메서드만 사용하므로 등록하지 않음
 
     // Dio HTTP Client (fallback for REST APIs)
     final dio = Dio();
@@ -60,28 +68,39 @@ class DependenciesInjection {
         ),
       );
     }
+    
+    // 에러 처리를 위한 Dio Interceptor 추가
+    dio.interceptors.add(
+      InterceptorsWrapper(
+        onError: (error, handler) {
+          final appError = ErrorHandlerService.convertToAppError(error);
+          ErrorHandlerService.logError(appError, stackTrace: error.stackTrace);
+          handler.next(error);
+        },
+      ),
+    );
 
-    getIt.registerSingleton<Dio>(dio);
+    ServiceLocator.registerSingleton<Dio>(dio);
   }
 
   static void _registerDataSources() {
     // TODO: Register your data sources here
     // Example:
-    // getIt.registerSingleton<UserLocalDataSource>(
-    //   UserLocalDataSourceImpl(getIt<HiveInterface>()),
+    // ServiceLocator.registerSingleton<UserLocalDataSource>(
+    //   UserLocalDataSourceImpl(ServiceLocator.get<HiveInterface>()),
     // );
-    // getIt.registerSingleton<UserRemoteDataSource>(
-    //   UserRemoteDataSourceImpl(getIt<Dio>()),
+    // ServiceLocator.registerSingleton<UserRemoteDataSource>(
+    //   UserRemoteDataSourceImpl(ServiceLocator.get<Dio>()),
     // );
   }
 
   static void _registerRepositories() {
     // TODO: Register your repositories here
     // Example:
-    // getIt.registerLazySingleton<UserRepository>(
+    // ServiceLocator.registerLazySingleton<UserRepository>(
     //   () => UserRepositoryImpl(
-    //     getIt<UserLocalDataSource>(),
-    //     getIt<UserRemoteDataSource>(),
+    //     ServiceLocator.get<UserLocalDataSource>(),
+    //     ServiceLocator.get<UserRemoteDataSource>(),
     //   ),
     // );
   }
@@ -89,21 +108,21 @@ class DependenciesInjection {
   static void _registerUseCases() {
     // TODO: Register your use cases here
     // Example:
-    // getIt.registerLazySingleton<GetUserUseCase>(
-    //   () => GetUserUseCase(getIt<UserRepository>()),
+    // ServiceLocator.registerLazySingleton<GetUserUseCase>(
+    //   () => GetUserUseCase(ServiceLocator.get<UserRepository>()),
     // );
-    // getIt.registerLazySingleton<CreateUserUseCase>(
-    //   () => CreateUserUseCase(getIt<UserRepository>()),
+    // ServiceLocator.registerLazySingleton<CreateUserUseCase>(
+    //   () => CreateUserUseCase(ServiceLocator.get<UserRepository>()),
     // );
   }
 
   static void _registerProviders() {
     // TODO: Register your providers/controllers here
     // Example:
-    // getIt.registerFactory<UserProvider>(
+    // ServiceLocator.registerFactory<UserProvider>(
     //   () => UserProvider(
-    //     getIt<GetUserUseCase>(),
-    //     getIt<CreateUserUseCase>(),
+    //     ServiceLocator.get<GetUserUseCase>(),
+    //     ServiceLocator.get<CreateUserUseCase>(),
     //   ),
     // );
   }
@@ -118,10 +137,10 @@ class DependenciesInjection {
     );
 
     // Register Supabase client
-    getIt.registerSingleton<SupabaseClient>(Supabase.instance.client);
+    ServiceLocator.registerSingleton<SupabaseClient>(Supabase.instance.client);
 
     // Register Supabase Auth
-    getIt.registerSingleton<GoTrueClient>(Supabase.instance.client.auth);
+    ServiceLocator.registerSingleton<GoTrueClient>(Supabase.instance.client.auth);
 
     if (EnvironmentConfig.enableLogging) {
       print('🔥 Supabase initialized');
@@ -130,19 +149,6 @@ class DependenciesInjection {
 
   // Reset for testing
   static Future<void> reset() async {
-    await getIt.reset();
-  }
-
-  // Get instance helper
-  static T get<T extends Object>() => getIt.get<T>();
-
-  // Check if registered
-  static bool isRegistered<T extends Object>() => getIt.isRegistered<T>();
-
-  // Unregister
-  static Future<bool> unregister<T extends Object>() async {
-    if (!getIt.isRegistered<T>()) return false;
-    await getIt.unregister<T>();
-    return true;
+    await ServiceLocator.reset();
   }
 }

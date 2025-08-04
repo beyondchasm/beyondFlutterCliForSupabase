@@ -24,10 +24,10 @@ Future<void> run(HookContext context) async {
     '''
 
     // User Supabase Data Sources
-    getIt.registerLazySingleton<SupabaseUserRemoteDataSource>(
+    ServiceLocator.registerLazySingleton<SupabaseUserRemoteDataSource>(
       () => SupabaseUserRemoteDataSourceImpl(),
     );''',
-    'getIt.registerLazySingleton<SupabaseUserRemoteDataSource>',
+    'ServiceLocator.registerLazySingleton<SupabaseUserRemoteDataSource>',
   );
 
   _addRegistration(
@@ -36,10 +36,10 @@ Future<void> run(HookContext context) async {
     '''
 
     // User Repository
-    getIt.registerLazySingleton<UserRepository>(
+    ServiceLocator.registerLazySingleton<UserRepository>(
       () => UserRepositoryImpl(),
     );''',
-    'getIt.registerLazySingleton<UserRepository>',
+    'ServiceLocator.registerLazySingleton<UserRepository>',
   );
 
   _addRegistration(
@@ -48,10 +48,10 @@ Future<void> run(HookContext context) async {
     '''
 
     // User Use Cases
-    getIt.registerLazySingleton<GetUserProfileUseCase>(() => GetUserProfileUseCase());
-    getIt.registerLazySingleton<UpdateUserProfileUseCase>(() => UpdateUserProfileUseCase());
-    getIt.registerLazySingleton<DeleteUserProfileUseCase>(() => DeleteUserProfileUseCase());''',
-    'getIt.registerLazySingleton<GetUserProfileUseCase>',
+    ServiceLocator.registerLazySingleton<GetUserProfileUseCase>(() => GetUserProfileUseCase());
+    ServiceLocator.registerLazySingleton<UpdateUserProfileUseCase>(() => UpdateUserProfileUseCase());
+    ServiceLocator.registerLazySingleton<DeleteUserProfileUseCase>(() => DeleteUserProfileUseCase());''',
+    'ServiceLocator.registerLazySingleton<GetUserProfileUseCase>',
   );
 
   _addRegistration(
@@ -60,8 +60,8 @@ Future<void> run(HookContext context) async {
     '''
 
     // User Provider
-    getIt.registerFactory<UserProvider>(() => UserProvider());''',
-    'getIt.registerFactory<UserProvider>',
+    ServiceLocator.registerFactory<UserProvider>(() => UserProvider());''',
+    'ServiceLocator.registerFactory<UserProvider>',
   );
 
   final newContent = lines.join('\n');

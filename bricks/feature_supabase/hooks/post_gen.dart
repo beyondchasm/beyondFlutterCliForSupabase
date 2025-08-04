@@ -66,42 +66,42 @@ void _updateDependencyInjection(String featureName, Logger logger) {
   // Data Sources 등록 코드 추가
   final dataSourceRegistration = '''
     // $featureName Feature Data Sources
-    getIt.registerLazySingleton<${_toPascalCase(featureName)}RemoteDataSource>(
+    ServiceLocator.registerLazySingleton<${_toPascalCase(featureName)}RemoteDataSource>(
       () => ${_toPascalCase(featureName)}RemoteDataSourceImpl(
-        client: getIt<SupabaseClient>(),
+        client: ServiceLocator.get<SupabaseClient>(),
       ),
     );
     
-    getIt.registerLazySingleton<${_toPascalCase(featureName)}LocalDataSource>(
+    ServiceLocator.registerLazySingleton<${_toPascalCase(featureName)}LocalDataSource>(
       () => ${_toPascalCase(featureName)}LocalDataSourceImpl(),
     );''';
   
   // Repository 등록 코드 추가
   final repositoryRegistration = '''
     // $featureName Feature Repository
-    getIt.registerLazySingleton<${_toPascalCase(featureName)}Repository>(
+    ServiceLocator.registerLazySingleton<${_toPascalCase(featureName)}Repository>(
       () => ${_toPascalCase(featureName)}RepositoryImpl(
-        remoteDataSource: getIt<${_toPascalCase(featureName)}RemoteDataSource>(),
-        localDataSource: getIt<${_toPascalCase(featureName)}LocalDataSource>(),
+        remoteDataSource: ServiceLocator.get<${_toPascalCase(featureName)}RemoteDataSource>(),
+        localDataSource: ServiceLocator.get<${_toPascalCase(featureName)}LocalDataSource>(),
       ),
     );''';
   
   // Use Cases 등록 코드 추가
   final useCasesRegistration = '''
     // $featureName Feature Use Cases
-    getIt.registerLazySingleton(() => Get${_toPascalCase(featureName)}UseCase(getIt<${_toPascalCase(featureName)}Repository>()));
-    getIt.registerLazySingleton(() => Create${_toPascalCase(featureName)}UseCase(getIt<${_toPascalCase(featureName)}Repository>()));
-    getIt.registerLazySingleton(() => Update${_toPascalCase(featureName)}UseCase(getIt<${_toPascalCase(featureName)}Repository>()));
-    getIt.registerLazySingleton(() => Delete${_toPascalCase(featureName)}UseCase(getIt<${_toPascalCase(featureName)}Repository>()));''';
+    ServiceLocator.registerLazySingleton(() => Get${_toPascalCase(featureName)}UseCase(ServiceLocator.get<${_toPascalCase(featureName)}Repository>()));
+    ServiceLocator.registerLazySingleton(() => Create${_toPascalCase(featureName)}UseCase(ServiceLocator.get<${_toPascalCase(featureName)}Repository>()));
+    ServiceLocator.registerLazySingleton(() => Update${_toPascalCase(featureName)}UseCase(ServiceLocator.get<${_toPascalCase(featureName)}Repository>()));
+    ServiceLocator.registerLazySingleton(() => Delete${_toPascalCase(featureName)}UseCase(ServiceLocator.get<${_toPascalCase(featureName)}Repository>()));''';
   
   // Provider 등록 코드 추가
   final providerRegistration = '''
     // $featureName Feature Provider
-    getIt.registerFactory(() => ${_toPascalCase(featureName)}Provider(
-      get${_toPascalCase(featureName)}UseCase: getIt<Get${_toPascalCase(featureName)}UseCase>(),
-      create${_toPascalCase(featureName)}UseCase: getIt<Create${_toPascalCase(featureName)}UseCase>(),
-      update${_toPascalCase(featureName)}UseCase: getIt<Update${_toPascalCase(featureName)}UseCase>(),
-      delete${_toPascalCase(featureName)}UseCase: getIt<Delete${_toPascalCase(featureName)}UseCase>(),
+    ServiceLocator.registerFactory(() => ${_toPascalCase(featureName)}Provider(
+      get${_toPascalCase(featureName)}UseCase: ServiceLocator.get<Get${_toPascalCase(featureName)}UseCase>(),
+      create${_toPascalCase(featureName)}UseCase: ServiceLocator.get<Create${_toPascalCase(featureName)}UseCase>(),
+      update${_toPascalCase(featureName)}UseCase: ServiceLocator.get<Update${_toPascalCase(featureName)}UseCase>(),
+      delete${_toPascalCase(featureName)}UseCase: ServiceLocator.get<Delete${_toPascalCase(featureName)}UseCase>(),
     ));''';
   
   // 각 섹션에 등록 코드 추가

@@ -34,7 +34,7 @@ Beyond Flutter CLI는 Flutter 앱을 Clean Architecture 패턴과 Supabase 백�
 - 🎨 **테마 시스템**: 다크/라이트 모드 지원
 - 📐 **상태 관리**: Provider/Riverpod 지원
 - 🧭 **라우팅**: GoRouter 기반 선언적 라우팅
-- 🔧 **의존성 주입**: GetIt을 활용한 DI 컨테이너
+- 🔧 **의존성 주입**: ServiceLocator 패턴과 GetIt 기반 DI 시스템
 
 ## 📦 설치
 
@@ -180,7 +180,8 @@ lib/
 │   │   ├── environment.dart
 │   │   └── supabase_config.dart
 │   ├── di/                 # 의존성 주입
-│   │   └── dependencies_injection.dart  # GetIt 기반 DI 컨테이너
+│   │   ├── dependencies_injection.dart  # DI 초기화 및 등록
+│   │   └── service_locator.dart         # GetIt 래퍼 클래스
 │   ├── routes/             # 라우팅
 │   │   ├── app_router.dart
 │   │   └── route_names.dart
@@ -322,10 +323,20 @@ CREATE POLICY "Users can update own profile." ON profiles
 
 ### 의존성 주입 (DI) 구조
 
-프로젝트는 **GetIt**을 사용한 의존성 주입 패턴을 구현합니다:
+프로젝트는 **ServiceLocator 패턴**과 **GetIt**을 사용한 의존성 주입 시스템을 구현합니다:
 
 ```dart
-// lib/core/di/dependencies_injection.dart
+// lib/core/di/service_locator.dart - GetIt 래퍼 클래스
+class ServiceLocator {
+  static T get<T extends Object>() => GetIt.instance.get<T>();
+  static void registerSingleton<T extends Object>(T instance) => 
+      GetIt.instance.registerSingleton<T>(instance);
+  static void registerLazySingleton<T extends Object>(T Function() factory) => 
+      GetIt.instance.registerLazySingleton<T>(factory);
+  // ... 추가 메서드들
+}
+
+// lib/core/di/dependencies_injection.dart - DI 초기화
 class DependenciesInjection {
   static Future<void> init() async {
     // 1. Core Services (SharedPreferences, Dio, etc.)
@@ -348,6 +359,12 @@ class DependenciesInjection {
   }
 }
 ```
+
+**🔧 ServiceLocator 패턴의 장점:**
+- GetIt 인스턴스의 직접 노출 방지
+- 일관된 API 제공
+- 에러 처리 및 로깅 추가 가능
+- 테스트 시 Mock 객체 주입 용이
 
 ### 앱 초기화 순서
 
