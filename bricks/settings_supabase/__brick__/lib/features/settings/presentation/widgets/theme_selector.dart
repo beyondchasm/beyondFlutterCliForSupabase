@@ -2,8 +2,8 @@ import 'package:flutter/material.dart';
 import '../../domain/entities/app_settings.dart';
 
 class ThemeSelector extends StatelessWidget {
-  final ThemeMode currentTheme;
-  final ValueChanged<ThemeMode> onThemeChanged;
+  final AppThemeMode currentTheme;
+  final ValueChanged<AppThemeMode> onThemeChanged;
 
   const ThemeSelector({
     super.key,
@@ -40,7 +40,7 @@ class ThemeSelector extends StatelessWidget {
           const SizedBox(height: 24),
           _buildThemeOption(
             context,
-            ThemeMode.system,
+            AppThemeMode.system,
             'System',
             'Follow system settings',
             Icons.brightness_auto,
@@ -48,7 +48,7 @@ class ThemeSelector extends StatelessWidget {
           const SizedBox(height: 12),
           _buildThemeOption(
             context,
-            ThemeMode.light,
+            AppThemeMode.light,
             'Light',
             'Always use light theme',
             Icons.brightness_high,
@@ -56,7 +56,7 @@ class ThemeSelector extends StatelessWidget {
           const SizedBox(height: 12),
           _buildThemeOption(
             context,
-            ThemeMode.dark,
+            AppThemeMode.dark,
             'Dark',
             'Always use dark theme',
             Icons.brightness_2,
@@ -69,7 +69,7 @@ class ThemeSelector extends StatelessWidget {
 
   Widget _buildThemeOption(
     BuildContext context,
-    ThemeMode mode,
+    AppThemeMode mode,
     String title,
     String subtitle,
     IconData icon,

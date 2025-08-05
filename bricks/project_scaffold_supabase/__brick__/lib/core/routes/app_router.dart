@@ -7,8 +7,10 @@ import '../screens/splash_screen.dart';
 import '../screens/home_screen.dart';
 
 class AppRouter {
-  static final GlobalKey<NavigatorState> _rootNavigatorKey = GlobalKey<NavigatorState>();
-  static final GlobalKey<NavigatorState> _shellNavigatorKey = GlobalKey<NavigatorState>();
+  static final GlobalKey<NavigatorState> _rootNavigatorKey =
+      GlobalKey<NavigatorState>();
+  static final GlobalKey<NavigatorState> _shellNavigatorKey =
+      GlobalKey<NavigatorState>();
 
   static GoRouter get router => _router;
 
@@ -28,19 +30,19 @@ class AppRouter {
       GoRoute(
         path: RouteNames.login,
         name: 'login',
-        builder: (context, state) => const LoginScreen(),
+        builder: (context, state) => const SampleLoginScreen(),
       ),
 
       GoRoute(
         path: RouteNames.register,
         name: 'register',
-        builder: (context, state) => const RegisterScreen(),
+        builder: (context, state) => const SampleRegisterScreen(),
       ),
 
       GoRoute(
-        path: RouteNames.forgotPassword,  
+        path: RouteNames.forgotPassword,
         name: 'forgotPassword',
-        builder: (context, state) => const ForgotPasswordScreen(),
+        builder: (context, state) => const SampleForgotPasswordScreen(),
       ),
 
       // Main App Shell with Bottom Navigation
@@ -69,17 +71,17 @@ class AppRouter {
           GoRoute(
             path: RouteNames.profile,
             name: 'profile',
-            builder: (context, state) => const ProfileScreen(),
+            builder: (context, state) => const SampleProfileScreen(),
             routes: [
               GoRoute(
                 path: 'edit',
                 name: 'editProfile',
-                builder: (context, state) => const EditProfileScreen(),
+                builder: (context, state) => const SampleEditProfileScreen(),
               ),
               GoRoute(
                 path: 'settings',
                 name: 'settings',
-                builder: (context, state) => const SettingsScreen(),
+                builder: (context, state) => const SampleSettingsScreen(),
               ),
             ],
           ),
@@ -90,13 +92,13 @@ class AppRouter {
       GoRoute(
         path: RouteNames.onboarding,
         name: 'onboarding',
-        builder: (context, state) => const OnboardingScreen(),
+        builder: (context, state) => const SampleOnboardingScreen(),
       ),
 
       GoRoute(
         path: '/notifications',
         name: 'notifications',
-        builder: (context, state) => const NotificationsScreen(),
+        builder: (context, state) => const SampleNotificationsScreen(),
       ),
     ],
 
@@ -106,33 +108,34 @@ class AppRouter {
     // Authentication-based Redirect Logic
     redirect: (context, state) async {
       final currentPath = state.uri.path;
-      
+
       // 스플래시 화면은 항상 허용 (앱 시작 시 진입점)
       if (currentPath == RouteNames.splash) {
         return null;
       }
-      
+
       // 현재 사용자 인증 상태 확인
       final isLoggedIn = Supabase.instance.client.auth.currentUser != null;
-      
+
       // 온보딩 완료 여부 확인 (첫 사용자 경험)
       final prefs = await SharedPreferences.getInstance();
-      final hasCompletedOnboarding = prefs.getBool('onboarding_completed') ?? false;
-      
+      final hasCompletedOnboarding =
+          prefs.getBool('onboarding_completed') ?? false;
+
       // 온보딩을 완료하지 않은 경우 온보딩 페이지로 리디렉션
       if (!hasCompletedOnboarding && currentPath != RouteNames.onboarding) {
         return RouteNames.onboarding;
       }
-      
+
       // 인증 관련 페이지들 정의
       final authPages = [
         RouteNames.login,
         RouteNames.register,
         RouteNames.forgotPassword,
       ];
-      
+
       final isAuthPage = authPages.contains(currentPath);
-      
+
       // 인증되지 않은 사용자의 경우
       if (!isLoggedIn) {
         // 온보딩 페이지나 인증 페이지에 있다면 그대로 진행
@@ -142,12 +145,12 @@ class AppRouter {
         // 그 외의 모든 페이지는 로그인 페이지로 리디렉션
         return RouteNames.login;
       }
-      
+
       // 인증된 사용자가 인증 페이지에 접근하려는 경우 홈으로 리디렉션
       if (isLoggedIn && isAuthPage) {
         return RouteNames.home;
       }
-      
+
       // 그 외의 경우는 정상 진행
       return null;
     },
@@ -214,32 +217,34 @@ class AppRouter {
 
   // Convenience Methods
   static void goHome() => go(RouteNames.home);
+
   static void goLogin() => go(RouteNames.login);
+
   static void goProfile() => go(RouteNames.profile);
+
   static void goSettings() => goNamed('settings');
-  
+
   static Future<void> pushNotifications() => push('/notifications');
+
   static Future<void> pushEditProfile() => pushNamed('editProfile');
 
   // Current Location
-  static String get currentLocation => _router.routerDelegate.currentConfiguration.uri.path;
-  
+  static String get currentLocation =>
+      _router.routerDelegate.currentConfiguration.uri.path;
+
   // Can Pop
   static bool canPop() => _router.canPop();
 }
 
 // Placeholder Screens - These will be replaced by actual implementations when auth/onboarding features are added
 
-class LoginScreen extends StatelessWidget {
-  const LoginScreen({super.key});
-  
+class SampleLoginScreen extends StatelessWidget {
+  const SampleLoginScreen({super.key});
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('로그인'),
-        centerTitle: true,
-      ),
+      appBar: AppBar(title: const Text('로그인'), centerTitle: true),
       body: SafeArea(
         child: Padding(
           padding: const EdgeInsets.all(24.0),
@@ -259,7 +264,7 @@ class LoginScreen extends StatelessWidget {
                 style: TextStyle(color: Colors.grey, fontSize: 16),
               ),
               const SizedBox(height: 48),
-              
+
               // 데모용 테스트 로그인 버튼
               SizedBox(
                 width: double.infinity,
@@ -280,9 +285,9 @@ class LoginScreen extends StatelessWidget {
                   ),
                 ),
               ),
-              
+
               const SizedBox(height: 16),
-              
+
               Row(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
@@ -303,7 +308,7 @@ class LoginScreen extends StatelessWidget {
       ),
     );
   }
-  
+
   /// 데모용 테스트 로그인 - Auth feature가 추가되면 실제 구현으로 교체됩니다
   Future<void> _handleTestLogin(BuildContext context) async {
     // 데모용으로 바로 홈 화면으로 이동
@@ -311,14 +316,12 @@ class LoginScreen extends StatelessWidget {
     showDialog(
       context: context,
       barrierDismissible: false,
-      builder: (context) => const Center(
-        child: CircularProgressIndicator(),
-      ),
+      builder: (context) => const Center(child: CircularProgressIndicator()),
     );
-    
+
     // 로그인 시뮬레이션
     await Future.delayed(const Duration(seconds: 1));
-    
+
     if (context.mounted) {
       Navigator.of(context).pop(); // 로딩 다이얼로그 닫기
       AppRouter.go(RouteNames.home);
@@ -326,16 +329,13 @@ class LoginScreen extends StatelessWidget {
   }
 }
 
-class RegisterScreen extends StatelessWidget {
-  const RegisterScreen({super.key});
-  
+class SampleRegisterScreen extends StatelessWidget {
+  const SampleRegisterScreen({super.key});
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('회원가입'),
-        centerTitle: true,
-      ),
+      appBar: AppBar(title: const Text('회원가입'), centerTitle: true),
       body: const Center(
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
@@ -359,16 +359,13 @@ class RegisterScreen extends StatelessWidget {
   }
 }
 
-class ForgotPasswordScreen extends StatelessWidget {
-  const ForgotPasswordScreen({super.key});
-  
+class SampleForgotPasswordScreen extends StatelessWidget {
+  const SampleForgotPasswordScreen({super.key});
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('비밀번호 재설정'),
-        centerTitle: true,
-      ),
+      appBar: AppBar(title: const Text('비밀번호 재설정'), centerTitle: true),
       body: const Center(
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
@@ -394,9 +391,9 @@ class ForgotPasswordScreen extends StatelessWidget {
 
 class MainShell extends StatelessWidget {
   final Widget child;
-  
+
   const MainShell({super.key, required this.child});
-  
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -421,12 +418,11 @@ class MainShell extends StatelessWidget {
   }
 }
 
-
 class HomeDetailsScreen extends StatelessWidget {
   final String id;
-  
+
   const HomeDetailsScreen({super.key, required this.id});
-  
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -436,20 +432,18 @@ class HomeDetailsScreen extends StatelessWidget {
   }
 }
 
-class ProfileScreen extends StatelessWidget {
-  const ProfileScreen({super.key});
-  
+class SampleProfileScreen extends StatelessWidget {
+  const SampleProfileScreen({super.key});
+
   @override
   Widget build(BuildContext context) {
-    return const Scaffold(
-      body: Center(child: Text('Profile Screen')),
-    );
+    return const Scaffold(body: Center(child: Text('Profile Screen')));
   }
 }
 
-class EditProfileScreen extends StatelessWidget {
-  const EditProfileScreen({super.key});
-  
+class SampleEditProfileScreen extends StatelessWidget {
+  const SampleEditProfileScreen({super.key});
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -459,9 +453,9 @@ class EditProfileScreen extends StatelessWidget {
   }
 }
 
-class SettingsScreen extends StatelessWidget {
-  const SettingsScreen({super.key});
-  
+class SampleSettingsScreen extends StatelessWidget {
+  const SampleSettingsScreen({super.key});
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -471,9 +465,9 @@ class SettingsScreen extends StatelessWidget {
   }
 }
 
-class OnboardingScreen extends StatelessWidget {
-  const OnboardingScreen({super.key});
-  
+class SampleOnboardingScreen extends StatelessWidget {
+  const SampleOnboardingScreen({super.key});
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -504,7 +498,7 @@ class OnboardingScreen extends StatelessWidget {
                   // 온보딩 완료 표시
                   final prefs = await SharedPreferences.getInstance();
                   await prefs.setBool('onboarding_completed', true);
-                  
+
                   // 로그인 페이지로 이동
                   if (context.mounted) {
                     AppRouter.goLogin();
@@ -516,10 +510,7 @@ class OnboardingScreen extends StatelessWidget {
                     borderRadius: BorderRadius.circular(25),
                   ),
                 ),
-                child: const Text(
-                  '시작하기',
-                  style: TextStyle(fontSize: 18),
-                ),
+                child: const Text('시작하기', style: TextStyle(fontSize: 18)),
               ),
             ],
           ),
@@ -529,9 +520,9 @@ class OnboardingScreen extends StatelessWidget {
   }
 }
 
-class NotificationsScreen extends StatelessWidget {
-  const NotificationsScreen({super.key});
-  
+class SampleNotificationsScreen extends StatelessWidget {
+  const SampleNotificationsScreen({super.key});
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -543,9 +534,9 @@ class NotificationsScreen extends StatelessWidget {
 
 class ErrorScreen extends StatelessWidget {
   final Exception? error;
-  
+
   const ErrorScreen({super.key, this.error});
-  
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(

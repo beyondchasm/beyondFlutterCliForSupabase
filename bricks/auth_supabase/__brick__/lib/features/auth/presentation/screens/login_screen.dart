@@ -1,19 +1,19 @@
 import 'package:flutter/material.dart';
-import 'package:provider/provider.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import '../providers/auth_provider.dart';
 import '../../../../core/theme/theme_colors.dart';
 import '../../../../core/theme/theme_text_styles.dart';
 import '../../../../core/routes/route_names.dart';
 
-class LoginScreen extends StatefulWidget {
+class LoginScreen extends ConsumerStatefulWidget {
   const LoginScreen({super.key});
 
   @override
-  State<LoginScreen> createState() => _LoginScreenState();
+  ConsumerState<LoginScreen> createState() => _LoginScreenState();
 }
 
-class _LoginScreenState extends State<LoginScreen> {
+class _LoginScreenState extends ConsumerState<LoginScreen> {
   final _formKey = GlobalKey<FormState>();
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
@@ -145,10 +145,17 @@ class _LoginScreenState extends State<LoginScreen> {
                 const SizedBox(height: 24),
                 
                 // Sign In Button
-                Consumer<AuthProvider>(
-                  builder: (context, authProvider, child) {
+                Consumer(
+                  builder: (context, ref, child) {
+                    final authState = ref.watch(authProvider);
+                    final isLoading = authState.when(
+                      data: (state) => state.isLoading,
+                      loading: () => true,
+                      error: (_, __) => false,
+                    );
+                    
                     return ElevatedButton(
-                      onPressed: authProvider.isLoading ? null : _signIn,
+                      onPressed: isLoading ? null : _signIn,
                       style: ElevatedButton.styleFrom(
                         backgroundColor: ThemeColors.primary,
                         foregroundColor: Colors.white,
@@ -157,7 +164,7 @@ class _LoginScreenState extends State<LoginScreen> {
                           borderRadius: BorderRadius.circular(8),
                         ),
                       ),
-                      child: authProvider.isLoading
+                      child: isLoading
                           ? const SizedBox(
                               height: 20,
                               width: 20,
@@ -177,9 +184,16 @@ class _LoginScreenState extends State<LoginScreen> {
                 const SizedBox(height: 24),
                 
                 // Error Message
-                Consumer<AuthProvider>(
-                  builder: (context, authProvider, child) {
-                    if (authProvider.errorMessage != null) {
+                Consumer(
+                  builder: (context, ref, child) {
+                    final authState = ref.watch(authProvider);
+                    final errorMessage = authState.when(
+                      data: (state) => state.errorMessage,
+                      loading: () => null,
+                      error: (error, _) => error.toString(),
+                    );
+                    
+                    if (errorMessage != null) {
                       return Container(
                         padding: const EdgeInsets.all(12),
                         decoration: BoxDecoration(
@@ -193,7 +207,7 @@ class _LoginScreenState extends State<LoginScreen> {
                             const SizedBox(width: 8),
                             Expanded(
                               child: Text(
-                                authProvider.errorMessage!,
+                                errorMessage,
                                 style: TextStyle(color: Colors.red.shade700),
                               ),
                             ),
@@ -234,8 +248,8 @@ class _LoginScreenState extends State<LoginScreen> {
   Future<void> _signIn() async {
     if (!_formKey.currentState!.validate()) return;
 
-    final authProvider = context.read<AuthProvider>();
-    final success = await authProvider.signIn(
+    final authNotifier = ref.read(authProvider.notifier);
+    final success = await authNotifier.signIn(
       _emailController.text.trim(),
       _passwordController.text,
     );

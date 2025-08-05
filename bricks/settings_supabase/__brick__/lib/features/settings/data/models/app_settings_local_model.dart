@@ -158,14 +158,14 @@ class AppSettingsLocalModel with _$AppSettingsLocalModel {
   }
 
   // Parsing methods
-  ThemeMode _parseThemeMode(String value) {
+  AppThemeMode _parseThemeMode(String value) {
     switch (value) {
       case 'light':
-        return ThemeMode.light;
+        return AppThemeMode.light;
       case 'dark':
-        return ThemeMode.dark;
+        return AppThemeMode.dark;
       default:
-        return ThemeMode.system;
+        return AppThemeMode.system;
     }
   }
 

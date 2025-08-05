@@ -1,4 +1,4 @@
-import '../../domain/entities/onboarding_page.dart';
+import '../../../domain/entities/onboarding_page.dart';
 
 /// 온보딩 페이지들의 기본 데이터를 제공하는 클래스
 /// 

@@ -110,7 +110,7 @@ class ProfileCompletionIndicator extends StatelessWidget {
     } else if (percentage >= 40) {
       return 'Good start! Add more information.';
     } else {
-      return 'Let\\'s complete your profile.';
+      return 'Let\'s complete your profile.';
     }
   }
 }

@@ -1,30 +1,21 @@
 import 'package:flutter/material.dart';
-import 'package:provider/provider.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../providers/settings_provider.dart';
 import '../widgets/settings_section.dart';
 import '../widgets/settings_tile.dart';
 import '../widgets/theme_selector.dart';
 import '../widgets/language_selector.dart';
 import '../widgets/auto_lock_selector.dart';
+import 'package:flutter_clean_architecture_app/features/settings/domain/entities/app_settings.dart';
 
-class SettingsScreen extends StatefulWidget {
+class SettingsScreen extends ConsumerStatefulWidget {
   const SettingsScreen({super.key});
 
   @override
-  State<SettingsScreen> createState() => _SettingsScreenState();
+  ConsumerState<SettingsScreen> createState() => _SettingsScreenState();
 }
 
-class _SettingsScreenState extends State<SettingsScreen> {
-  @override
-  void initState() {
-    super.initState();
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      final provider = context.read<SettingsProvider>();
-      if (provider.settings == null) {
-        provider.initialize();
-      }
-    });
-  }
+class _SettingsScreenState extends ConsumerState<SettingsScreen> {
 
   @override
   Widget build(BuildContext context) {
@@ -67,7 +58,10 @@ class _SettingsScreenState extends State<SettingsScreen> {
                   children: [
                     Icon(Icons.restore, color: Colors.red),
                     SizedBox(width: 12),
-                    Text('Reset to Defaults', style: TextStyle(color: Colors.red)),
+                    Text(
+                      'Reset to Defaults',
+                      style: TextStyle(color: Colors.red),
+                    ),
                   ],
                 ),
               ),
@@ -75,84 +69,116 @@ class _SettingsScreenState extends State<SettingsScreen> {
           ),
         ],
       ),
-      body: Consumer<SettingsProvider>(
-        builder: (context, provider, child) {
-          if (provider.isLoading) {
-            return const Center(
-              child: CircularProgressIndicator(),
-            );
-          }
+      body: Consumer(
+        builder: (context, ref, child) {
+          final settingsState = ref.watch(settingsProvider);
+          
+          return settingsState.when(
+            data: (state) {
+              if (state.isLoading) {
+                return const Center(child: CircularProgressIndicator());
+              }
 
-          if (provider.error != null) {
-            return Center(
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Icon(
-                    Icons.error_outline,
-                    size: 64,
-                    color: Theme.of(context).colorScheme.error,
+              if (state.error != null) {
+                return Center(
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Icon(
+                        Icons.error_outline,
+                        size: 64,
+                        color: Theme.of(context).colorScheme.error,
+                      ),
+                      const SizedBox(height: 16),
+                      Text(
+                        'Error loading settings',
+                        style: Theme.of(context).textTheme.headlineSmall,
+                      ),
+                      const SizedBox(height: 8),
+                      Text(
+                        state.error!,
+                        style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                          color: Theme.of(context).colorScheme.error,
+                        ),
+                        textAlign: TextAlign.center,
+                      ),
+                      const SizedBox(height: 16),
+                      ElevatedButton(
+                        onPressed: () => ref.invalidate(settingsProvider),
+                        child: const Text('Retry'),
+                      ),
+                    ],
                   ),
-                  const SizedBox(height: 16),
-                  Text(
-                    'Error loading settings',
-                    style: Theme.of(context).textTheme.headlineSmall,
-                  ),
-                  const SizedBox(height: 8),
-                  Text(
-                    provider.error!,
-                    style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                      color: Theme.of(context).colorScheme.error,
-                    ),
-                    textAlign: TextAlign.center,
-                  ),
-                  const SizedBox(height: 16),
-                  ElevatedButton(
-                    onPressed: () => provider.initialize(),
-                    child: const Text('Retry'),
-                  ),
-                ],
-              ),
-            );
-          }
+                );
+              }
 
-          if (provider.settings == null) {
-            return const Center(
-              child: Text('No settings available'),
-            );
-          }
+              if (state.settings == null) {
+                return const Center(child: Text('No settings available'));
+              }
 
-          return RefreshIndicator(
-            onRefresh: () => provider.initialize(),
-            child: SingleChildScrollView(
+              return RefreshIndicator(
+                onRefresh: () async => ref.invalidate(settingsProvider),
+                child: SingleChildScrollView(
               physics: const AlwaysScrollableScrollPhysics(),
               padding: const EdgeInsets.all(16),
               child: Column(
                 children: [
-                  _buildAppearanceSection(provider),
+                  _buildAppearanceSection(state),
                   const SizedBox(height: 16),
-                  _buildNotificationsSection(provider),
+                  _buildNotificationsSection(state),
                   const SizedBox(height: 16),
-                  _buildPrivacySecuritySection(provider),
+                  _buildPrivacySecuritySection(state),
                   const SizedBox(height: 16),
-                  _buildDataStorageSection(provider),
+                  _buildDataStorageSection(state),
                   const SizedBox(height: 16),
-                  _buildAccessibilitySection(provider),
+                  _buildAccessibilitySection(state),
                   const SizedBox(height: 16),
-                  _buildAboutSection(provider),
+                  _buildAboutSection(state),
                   const SizedBox(height: 32),
                 ],
               ),
             ),
           );
         },
-      ),
+        loading: () => const Center(child: CircularProgressIndicator()),
+        error: (error, stack) => Center(
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Icon(
+                Icons.error_outline,
+                size: 64,
+                color: Theme.of(context).colorScheme.error,
+              ),
+              const SizedBox(height: 16),
+              Text(
+                'Error loading settings',
+                style: Theme.of(context).textTheme.headlineSmall,
+              ),
+              const SizedBox(height: 8),
+              Text(
+                error.toString(),
+                style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                  color: Theme.of(context).colorScheme.error,
+                ),
+                textAlign: TextAlign.center,
+              ),
+              const SizedBox(height: 16),
+              ElevatedButton(
+                onPressed: () => ref.invalidate(settingsProvider),
+                child: const Text('Retry'),
+              ),
+            ],
+          ),
+        ),
+      );
+    },
     );
   }
 
-  Widget _buildAppearanceSection(SettingsProvider provider) {
-    final settings = provider.settings!;
-    
+  Widget _buildAppearanceSection(SettingsState state) {
+    final settings = state.settings!;
+
     return SettingsSection(
       title: 'Appearance',
       icon: Icons.palette_outlined,
@@ -180,9 +206,9 @@ class _SettingsScreenState extends State<SettingsScreen> {
     );
   }
 
-  Widget _buildNotificationsSection(SettingsProvider provider) {
-    final settings = provider.settings!;
-    
+  Widget _buildNotificationsSection(SettingsState state) {
+    final settings = state.settings!;
+
     return SettingsSection(
       title: 'Notifications',
       icon: Icons.notifications_outlined,
@@ -192,21 +218,24 @@ class _SettingsScreenState extends State<SettingsScreen> {
           subtitle: 'Receive notifications on your device',
           leading: const Icon(Icons.notifications_active_outlined),
           value: settings.pushNotificationsEnabled,
-          onChanged: (value) => provider.updateSetting('pushNotificationsEnabled', value),
+          onChanged: (value) =>
+              provider.updateSetting('pushNotificationsEnabled', value),
         ),
         SettingsTile.switchTile(
           title: 'Email Notifications',
           subtitle: 'Receive notifications via email',
           leading: const Icon(Icons.email_outlined),
           value: settings.emailNotificationsEnabled,
-          onChanged: (value) => provider.updateSetting('emailNotificationsEnabled', value),
+          onChanged: (value) =>
+              provider.updateSetting('emailNotificationsEnabled', value),
         ),
         SettingsTile.switchTile(
           title: 'In-App Notifications',
           subtitle: 'Show notifications within the app',
           leading: const Icon(Icons.app_blocking_outlined),
           value: settings.inAppNotificationsEnabled,
-          onChanged: (value) => provider.updateSetting('inAppNotificationsEnabled', value),
+          onChanged: (value) =>
+              provider.updateSetting('inAppNotificationsEnabled', value),
         ),
         SettingsTile.switchTile(
           title: 'Sound',
@@ -220,15 +249,16 @@ class _SettingsScreenState extends State<SettingsScreen> {
           subtitle: 'Vibrate for notifications',
           leading: const Icon(Icons.vibration_outlined),
           value: settings.vibrationEnabled,
-          onChanged: (value) => provider.updateSetting('vibrationEnabled', value),
+          onChanged: (value) =>
+              provider.updateSetting('vibrationEnabled', value),
         ),
       ],
     );
   }
 
-  Widget _buildPrivacySecuritySection(SettingsProvider provider) {
-    final settings = provider.settings!;
-    
+  Widget _buildPrivacySecuritySection(SettingsState state) {
+    final settings = state.settings!;
+
     return SettingsSection(
       title: 'Privacy & Security',
       icon: Icons.security_outlined,
@@ -251,7 +281,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
           subtitle: 'Ask for authentication before sensitive operations',
           leading: const Icon(Icons.security_outlined),
           value: settings.requireAuthForSensitiveActions,
-          onChanged: (value) => provider.updateSetting('requireAuthForSensitiveActions', value),
+          onChanged: (value) =>
+              provider.updateSetting('requireAuthForSensitiveActions', value),
         ),
         SettingsTile.switchTile(
           title: 'Analytics',
@@ -265,15 +296,16 @@ class _SettingsScreenState extends State<SettingsScreen> {
           subtitle: 'Automatically send crash reports',
           leading: const Icon(Icons.bug_report_outlined),
           value: settings.crashReportingEnabled,
-          onChanged: (value) => provider.updateSetting('crashReportingEnabled', value),
+          onChanged: (value) =>
+              provider.updateSetting('crashReportingEnabled', value),
         ),
       ],
     );
   }
 
-  Widget _buildDataStorageSection(SettingsProvider provider) {
-    final settings = provider.settings!;
-    
+  Widget _buildDataStorageSection(SettingsState state) {
+    final settings = state.settings!;
+
     return SettingsSection(
       title: 'Data & Storage',
       icon: Icons.storage_outlined,
@@ -283,7 +315,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
           subtitle: 'Automatically backup your data',
           leading: const Icon(Icons.backup_outlined),
           value: settings.autoBackupEnabled,
-          onChanged: (value) => provider.updateSetting('autoBackupEnabled', value),
+          onChanged: (value) =>
+              provider.updateSetting('autoBackupEnabled', value),
         ),
         SettingsTile(
           title: 'Sync Frequency',
@@ -308,9 +341,9 @@ class _SettingsScreenState extends State<SettingsScreen> {
     );
   }
 
-  Widget _buildAccessibilitySection(SettingsProvider provider) {
-    final settings = provider.settings!;
-    
+  Widget _buildAccessibilitySection(SettingsState state) {
+    final settings = state.settings!;
+
     return SettingsSection(
       title: 'Accessibility',
       icon: Icons.accessibility_outlined,
@@ -326,20 +359,22 @@ class _SettingsScreenState extends State<SettingsScreen> {
           subtitle: 'Increase contrast for better visibility',
           leading: const Icon(Icons.contrast_outlined),
           value: settings.highContrastEnabled,
-          onChanged: (value) => provider.updateSetting('highContrastEnabled', value),
+          onChanged: (value) =>
+              provider.updateSetting('highContrastEnabled', value),
         ),
         SettingsTile.switchTile(
           title: 'Reduce Animations',
           subtitle: 'Minimize motion for better focus',
           leading: const Icon(Icons.motion_photos_off_outlined),
           value: settings.reduceAnimationsEnabled,
-          onChanged: (value) => provider.updateSetting('reduceAnimationsEnabled', value),
+          onChanged: (value) =>
+              provider.updateSetting('reduceAnimationsEnabled', value),
         ),
       ],
     );
   }
 
-  Widget _buildAboutSection(SettingsProvider provider) {
+  Widget _buildAboutSection(SettingsState state) {
     return SettingsSection(
       title: 'About',
       icon: Icons.info_outlined,
@@ -371,7 +406,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
 
   void _handleMenuAction(String action) async {
     final provider = context.read<SettingsProvider>();
-    
+
     switch (action) {
       case 'export':
         await _exportSettings(provider);
@@ -389,7 +424,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
     showModalBottomSheet(
       context: context,
       builder: (context) => ThemeSelector(
-        currentTheme: provider.settings!.themeMode,
+        currentTheme: state.settings!.themeMode,
         onThemeChanged: (theme) {
           provider.updateThemeMode(theme);
           Navigator.pop(context);
@@ -402,7 +437,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
     showModalBottomSheet(
       context: context,
       builder: (context) => LanguageSelector(
-        currentLanguage: provider.settings!.language,
+        currentLanguage: state.settings!.language,
         onLanguageChanged: (language) {
           provider.updateLanguage(language);
           Navigator.pop(context);
@@ -415,7 +450,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
     showModalBottomSheet(
       context: context,
       builder: (context) => AutoLockSelector(
-        currentDuration: provider.settings!.autoLockDuration,
+        currentDuration: state.settings!.autoLockDuration,
         onDurationChanged: (duration) {
           provider.updateAutoLockDuration(duration);
           Navigator.pop(context);
@@ -424,7 +459,10 @@ class _SettingsScreenState extends State<SettingsScreen> {
     );
   }
 
-  void _showSyncFrequencySelector(BuildContext context, SettingsProvider provider) {
+  void _showSyncFrequencySelector(
+    BuildContext context,
+    SettingsProvider provider,
+  ) {
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
@@ -435,7 +473,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
             return RadioListTile<DataSyncFrequency>(
               title: Text(frequency.displayName),
               value: frequency,
-              groupValue: provider.settings!.dataSyncFrequency,
+              groupValue: state.settings!.dataSyncFrequency,
               onChanged: (value) {
                 if (value != null) {
                   provider.updateSetting('dataSyncFrequency', value.name);
@@ -460,7 +498,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
             return RadioListTile<CacheSize>(
               title: Text(size.displayName),
               value: size,
-              groupValue: provider.settings!.cacheSize,
+              groupValue: state.settings!.cacheSize,
               onChanged: (value) {
                 if (value != null) {
                   provider.updateSetting('cacheSize', value.name);
@@ -485,11 +523,11 @@ class _SettingsScreenState extends State<SettingsScreen> {
             const Text('Preview Text'),
             const SizedBox(height: 16),
             Slider(
-              value: provider.settings!.textScale,
+              value: state.settings!.textScale,
               min: 0.5,
               max: 3.0,
               divisions: 10,
-              label: '${(provider.settings!.textScale * 100).round()}%',
+              label: '${(state.settings!.textScale * 100).round()}%',
               onChanged: (value) {
                 provider.updateTextScale(value);
               },
@@ -520,11 +558,9 @@ class _SettingsScreenState extends State<SettingsScreen> {
 
   Future<void> _importSettings(SettingsProvider provider) async {
     // TODO: Implement file picker and import logic
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(
-        content: Text('Import feature coming soon'),
-      ),
-    );
+    ScaffoldMessenger.of(
+      context,
+    ).showSnackBar(const SnackBar(content: Text('Import feature coming soon')));
   }
 
   Future<void> _showResetConfirmation(SettingsProvider provider) async {
@@ -570,17 +606,15 @@ class _SettingsScreenState extends State<SettingsScreen> {
       applicationName: 'Your App Name',
       applicationVersion: '1.0.0+1',
       applicationLegalese: '© 2024 Your Company Name',
-      children: const [
-        Text('This app was built with Flutter and Supabase.'),
-      ],
+      children: const [Text('This app was built with Flutter and Supabase.')],
     );
   }
 
   void _openPrivacyPolicy() {
     // TODO: Open privacy policy URL
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text('Opening Privacy Policy...')),
-    );
+    ScaffoldMessenger.of(
+      context,
+    ).showSnackBar(const SnackBar(content: Text('Opening Privacy Policy...')));
   }
 
   void _openTermsOfService() {
@@ -592,18 +626,18 @@ class _SettingsScreenState extends State<SettingsScreen> {
 
   void _contactSupport() {
     // TODO: Open email client or support page
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text('Opening Contact Support...')),
-    );
+    ScaffoldMessenger.of(
+      context,
+    ).showSnackBar(const SnackBar(content: Text('Opening Contact Support...')));
   }
 
-  String _getThemeModeText(ThemeMode mode) {
+  String _getThemeModeText(AppThemeMode mode) {
     switch (mode) {
-      case ThemeMode.light:
+      case AppThemeMode.light:
         return 'Light';
-      case ThemeMode.dark:
+      case AppThemeMode.dark:
         return 'Dark';
-      case ThemeMode.system:
+      case AppThemeMode.system:
         return 'System';
     }
   }

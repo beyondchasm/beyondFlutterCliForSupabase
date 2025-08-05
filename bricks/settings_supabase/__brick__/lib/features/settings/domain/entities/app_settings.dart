@@ -1,3 +1,4 @@
+import 'package:flutter/material.dart' show Brightness;
 import 'package:freezed_annotation/freezed_annotation.dart';
 
 part 'app_settings.freezed.dart';
@@ -7,7 +8,7 @@ part 'app_settings.g.dart';
 class AppSettings with _$AppSettings {
   const factory AppSettings({
     // Theme Settings
-    @Default(ThemeMode.system) ThemeMode themeMode,
+    @Default(AppThemeMode.system) AppThemeMode themeMode,
     @Default(false) bool useMaterialYou,
     @Default('system') String accentColor,
     
@@ -78,11 +79,11 @@ class AppSettings with _$AppSettings {
   /// Get current theme brightness
   Brightness get effectiveBrightness {
     switch (themeMode) {
-      case ThemeMode.light:
+      case AppThemeMode.light:
         return Brightness.light;
-      case ThemeMode.dark:
+      case AppThemeMode.dark:
         return Brightness.dark;
-      case ThemeMode.system:
+      case AppThemeMode.system:
         // This would need to be determined by the system
         return Brightness.light;
     }
@@ -125,7 +126,7 @@ class AppSettings with _$AppSettings {
   }
 }
 
-enum ThemeMode {
+enum AppThemeMode {
   system,
   light,
   dark,

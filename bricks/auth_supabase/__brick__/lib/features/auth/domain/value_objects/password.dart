@@ -42,17 +42,19 @@ class Password with _$Password {
   static bool _hasLowerCase(String password) => password.contains(RegExp(r'[a-z]'));
   static bool _hasDigit(String password) => password.contains(RegExp(r'\d'));
   static bool _hasSpecialChar(String password) => password.contains(RegExp(r'[!@#$%^&*(),.?":{}|<>]'));
-  
+}
+
+extension PasswordExtension on Password {
   /// 비밀번호 강도 계산 (1-5)
   int get strength {
     int score = 0;
-    final value = this.value;
+    final passwordValue = value;
     
-    if (value.length >= 8) score++;
-    if (value.length >= 12) score++;
-    if (_hasUpperCase(value) && _hasLowerCase(value)) score++;
-    if (_hasDigit(value)) score++;
-    if (_hasSpecialChar(value)) score++;
+    if (passwordValue.length >= 8) score++;
+    if (passwordValue.length >= 12) score++;
+    if (Password._hasUpperCase(passwordValue) && Password._hasLowerCase(passwordValue)) score++;
+    if (Password._hasDigit(passwordValue)) score++;
+    if (Password._hasSpecialChar(passwordValue)) score++;
     
     return score;
   }

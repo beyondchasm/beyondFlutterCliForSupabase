@@ -18,3 +18,7 @@ bricks:
   # 온보딩 기능 생성을 위한 브릭
   onboarding_supabase:
     path: ./bricks/onboarding_supabase
+
+  # setting 기능 생성을 위한 브릭
+  settings_supabase:
+    path: ./bricks/settings_supabase

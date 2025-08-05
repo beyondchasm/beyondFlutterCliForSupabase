@@ -89,7 +89,10 @@ class AuthRepositoryImpl implements AuthRepository {
             as UserEntity,
       );
     } catch (e) {
-      return AuthResult.failure(e.toString().replaceFirst('Exception: ', ''));
+      return AuthResult.failure(
+        message: e.toString().replaceFirst('Exception: ', ''),
+        errorType: AuthErrorType.unknownError,
+      );
     }
   }
 
@@ -112,7 +115,10 @@ class AuthRepositoryImpl implements AuthRepository {
       final userModel = await _remoteDataSource.signInWithGoogle();
       return AuthResult.success(userModel.toEntity());
     } catch (e) {
-      return AuthResult.failure(e.toString().replaceFirst('Exception: ', ''));
+      return AuthResult.failure(
+        message: e.toString().replaceFirst('Exception: ', ''),
+        errorType: AuthErrorType.unknownError,
+      );
     }
   }
 

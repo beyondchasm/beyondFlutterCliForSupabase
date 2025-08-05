@@ -14,6 +14,9 @@
     },
     "user_supabase": {
       "path": "/Users/createogu/beyondChasm/mason/beyond_flutter_cli_for_supabase/bricks/user_supabase"
+    },
+    "settings_supabase": {
+      "path": "/Users/createogu/beyondChasm/mason/beyond_flutter_cli_for_supabase/bricks/settings_supabase"
     }
   }
 }

@@ -25,7 +25,7 @@ class SupabaseAuthRemoteDataSourceImpl implements SupabaseAuthRemoteDataSource {
       
       return SupabaseUserModel.fromSupabaseUser(response.user!);
     } on AuthException catch (e) {
-      throw Exception(_getAuthErrorMessage(e.message));
+      throw _handleAuthError(e);
     }
   }
 
@@ -43,7 +43,7 @@ class SupabaseAuthRemoteDataSourceImpl implements SupabaseAuthRemoteDataSource {
       
       return SupabaseUserModel.fromSupabaseUser(response.user!);
     } on AuthException catch (e) {
-      throw Exception(_getAuthErrorMessage(e.message));
+      throw _handleAuthError(e);
     }
   }
 
@@ -52,7 +52,7 @@ class SupabaseAuthRemoteDataSourceImpl implements SupabaseAuthRemoteDataSource {
     try {
       await _supabaseClient.auth.signOut();
     } on AuthException catch (e) {
-      throw Exception(_getAuthErrorMessage(e.message));
+      throw _handleAuthError(e);
     }
   }
 
@@ -61,7 +61,7 @@ class SupabaseAuthRemoteDataSourceImpl implements SupabaseAuthRemoteDataSource {
     try {
       await _supabaseClient.auth.resetPasswordForEmail(email);
     } on AuthException catch (e) {
-      throw Exception(_getAuthErrorMessage(e.message));
+      throw _handleAuthError(e);
     }
   }
 
@@ -233,22 +233,13 @@ class SupabaseAuthRemoteDataSourceImpl implements SupabaseAuthRemoteDataSource {
   /// 향상된 에러 처리 시스템
   AuthException _handleAuthError(Object error) {
     if (error is AuthException) {
-      return AuthException(
-        message: _getLocalizedErrorMessage(error.message),
-        statusCode: error.statusCode,
-      );
+      return AuthException(_getLocalizedErrorMessage(error.message));
     } else if (error is SocketException) {
-      return const AuthException(
-        'Network connection failed. Please check your internet connection.',
-      );
+      return const AuthException('Network connection failed. Please check your internet connection.');
     } else if (error is FormatException) {
-      return const AuthException(
-        'Invalid data format received from server.',
-      );
+      return const AuthException('Invalid data format received from server.');
     } else {
-      return AuthException(
-        'An unexpected error occurred: ${error.toString()}',
-      );
+      return AuthException('An unexpected error occurred: ${error.toString()}');
     }
   }
 
@@ -275,27 +266,4 @@ class SupabaseAuthRemoteDataSourceImpl implements SupabaseAuthRemoteDataSource {
     return message.isNotEmpty ? message : '알 수 없는 오류가 발생했습니다. 다시 시도해주세요.';
   }
 
-  /// 에러 타입 분류
-  AuthErrorType _getErrorType(String message) {
-    if (message.contains('Invalid login credentials')) {
-      return AuthErrorType.invalidCredentials;
-    } else if (message.contains('Email not confirmed')) {
-      return AuthErrorType.emailNotVerified;
-    } else if (message.contains('User already registered')) {
-      return AuthErrorType.emailAlreadyInUse;
-    } else if (message.contains('Password should be at least') || 
-               message.contains('Weak password')) {
-      return AuthErrorType.weakPassword;
-    } else if (message.contains('User not found')) {
-      return AuthErrorType.userNotFound;
-    } else if (message.contains('Too many requests')) {
-      return AuthErrorType.tooManyRequests;
-    } else if (message.contains('network') || message.contains('connection')) {
-      return AuthErrorType.networkError;
-    } else if (message.contains('server') || message.contains('internal')) {
-      return AuthErrorType.serverError;
-    } else {
-      return AuthErrorType.unknownError;
-    }
-  }
 }

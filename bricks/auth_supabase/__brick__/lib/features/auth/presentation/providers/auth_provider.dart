@@ -1,136 +1,189 @@
-import 'package:flutter/foundation.dart';
+import 'dart:async';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:injectable/injectable.dart';
 import '../../domain/entities/user_entity.dart';
-import '../../domain/entities/auth_result.dart';
 import '../../domain/use_cases/sign_in_usecase.dart';
 import '../../domain/use_cases/sign_up_usecase.dart';
 import '../../domain/use_cases/sign_out_usecase.dart';
 import '../../domain/use_cases/reset_password_usecase.dart';
 import '../../domain/use_cases/get_current_user_usecase.dart';
+import '../../../../core/di/injection.dart';
+
+class AuthState {
+  final UserEntity? currentUser;
+  final bool isLoading;
+  final String? errorMessage;
+
+  const AuthState({
+    this.currentUser,
+    this.isLoading = false,
+    this.errorMessage,
+  });
+
+  bool get isAuthenticated => currentUser != null;
+
+  AuthState copyWith({
+    UserEntity? currentUser,
+    bool? isLoading,
+    String? errorMessage,
+  }) {
+    return AuthState(
+      currentUser: currentUser ?? this.currentUser,
+      isLoading: isLoading ?? this.isLoading,
+      errorMessage: errorMessage ?? this.errorMessage,
+    );
+  }
+}
 
 @injectable
-class AuthProvider extends ChangeNotifier {
+class AuthNotifier extends AsyncNotifier<AuthState> {
   final SignInUseCase _signInUseCase;
   final SignUpUseCase _signUpUseCase;
   final SignOutUseCase _signOutUseCase;
   final ResetPasswordUseCase _resetPasswordUseCase;
   final GetCurrentUserUseCase _getCurrentUserUseCase;
 
-  AuthProvider(
+  AuthNotifier(
     this._signInUseCase,
     this._signUpUseCase,
     this._signOutUseCase,
     this._resetPasswordUseCase,
     this._getCurrentUserUseCase,
-  ) {
-    _initializeAuthState();
-  }
+  );
 
-  UserEntity? _currentUser;
-  bool _isLoading = false;
-  String? _errorMessage;
+  @override
+  FutureOr<AuthState> build() async {
+    final currentUser = await _getCurrentUserUseCase();
 
-  UserEntity? get currentUser => _currentUser;
-  bool get isLoading => _isLoading;
-  String? get errorMessage => _errorMessage;
-  bool get isAuthenticated => _currentUser != null;
-
-  void _initializeAuthState() {
     _getCurrentUserUseCase.authStateChanges.listen((user) {
-      _currentUser = user;
-      notifyListeners();
+      state = AsyncValue.data(AuthState(currentUser: user));
     });
+
+    return AuthState(currentUser: currentUser);
   }
 
   Future<bool> signIn(String email, String password) async {
-    _setLoading(true);
-    _clearError();
+    state = AsyncValue.data(
+      state.value!.copyWith(isLoading: true, errorMessage: null),
+    );
 
     final result = await _signInUseCase(email, password);
-    
+
     return result.when(
       success: (user) {
-        _currentUser = user;
-        _setLoading(false);
+        state = AsyncValue.data(AuthState(currentUser: user, isLoading: false));
         return true;
       },
-      failure: (message) {
-        _setError(message);
-        _setLoading(false);
+      failure: (message, errorType, code, details) {
+        state = AsyncValue.data(
+          state.value!.copyWith(isLoading: false, errorMessage: message),
+        );
+        return false;
+      },
+      loading: () {
+        state = AsyncValue.data(state.value!.copyWith(isLoading: true));
+        return false;
+      },
+      emailVerificationRequired: (email, message) {
+        state = AsyncValue.data(
+          state.value!.copyWith(
+            isLoading: false,
+            errorMessage: message ?? 'Email verification required',
+          ),
+        );
         return false;
       },
     );
   }
 
   Future<bool> signUp(String email, String password) async {
-    _setLoading(true);
-    _clearError();
+    state = AsyncValue.data(
+      state.value!.copyWith(isLoading: true, errorMessage: null),
+    );
 
     final result = await _signUpUseCase(email, password);
-    
+
     return result.when(
       success: (user) {
-        _currentUser = user;
-        _setLoading(false);
+        state = AsyncValue.data(AuthState(currentUser: user, isLoading: false));
         return true;
       },
-      failure: (message) {
-        _setError(message);
-        _setLoading(false);
+      failure: (message, errorType, code, details) {
+        state = AsyncValue.data(
+          state.value!.copyWith(isLoading: false, errorMessage: message),
+        );
+        return false;
+      },
+      loading: () {
+        state = AsyncValue.data(state.value!.copyWith(isLoading: true));
+        return false;
+      },
+      emailVerificationRequired: (email, message) {
+        state = AsyncValue.data(
+          state.value!.copyWith(
+            isLoading: false,
+            errorMessage: message ?? 'Email verification required',
+          ),
+        );
         return false;
       },
     );
   }
 
   Future<void> signOut() async {
-    _setLoading(true);
-    _clearError();
+    state = AsyncValue.data(
+      state.value!.copyWith(isLoading: true, errorMessage: null),
+    );
 
     try {
       await _signOutUseCase();
-      _currentUser = null;
+      state = AsyncValue.data(AuthState(currentUser: null, isLoading: false));
     } catch (e) {
-      _setError(e.toString());
+      state = AsyncValue.data(
+        state.value!.copyWith(isLoading: false, errorMessage: e.toString()),
+      );
     }
-    
-    _setLoading(false);
   }
 
   Future<bool> resetPassword(String email) async {
-    _setLoading(true);
-    _clearError();
+    state = AsyncValue.data(
+      state.value!.copyWith(isLoading: true, errorMessage: null),
+    );
 
     final result = await _resetPasswordUseCase(email);
-    
+
     return result.when(
       success: (_) {
-        _setLoading(false);
+        state = AsyncValue.data(state.value!.copyWith(isLoading: false));
         return true;
       },
-      failure: (message) {
-        _setError(message);
-        _setLoading(false);
+      failure: (message, errorType, code, details) {
+        state = AsyncValue.data(
+          state.value!.copyWith(isLoading: false, errorMessage: message),
+        );
+        return false;
+      },
+      loading: () {
+        state = AsyncValue.data(state.value!.copyWith(isLoading: true));
+        return false;
+      },
+      emailVerificationRequired: (email, message) {
+        state = AsyncValue.data(
+          state.value!.copyWith(
+            isLoading: false,
+            errorMessage: message ?? 'Email verification required',
+          ),
+        );
         return false;
       },
     );
   }
 
-  void _setLoading(bool loading) {
-    _isLoading = loading;
-    notifyListeners();
-  }
-
-  void _setError(String message) {
-    _errorMessage = message;
-    notifyListeners();
-  }
-
-  void _clearError() {
-    _errorMessage = null;
-    notifyListeners();
-  }
-
   void clearError() {
-    _clearError();
+    state = AsyncValue.data(state.value!.copyWith(errorMessage: null));
   }
 }
+
+final authProvider = AsyncNotifierProvider<AuthNotifier, AuthState>(() {
+  return getIt<AuthNotifier>();
+});

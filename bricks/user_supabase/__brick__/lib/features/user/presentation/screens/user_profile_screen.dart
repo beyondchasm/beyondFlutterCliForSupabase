@@ -197,7 +197,7 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
           ),
         ),
         const SizedBox(height: 4),
-        if (userProfile.bio?.isNotEmpty == true) ..[
+        if (userProfile.bio?.isNotEmpty == true) ...[
           Text(
             userProfile.bio!,
             style: ThemeTextStyles.bodyMedium?.copyWith(
@@ -226,7 +226,7 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
             ),
           ],
         ),
-        if (userProfile.location?.isNotEmpty == true) ..[
+        if (userProfile.location?.isNotEmpty == true) ...[
           const SizedBox(height: 4),
           Row(
             mainAxisAlignment: MainAxisAlignment.center,
@@ -343,7 +343,7 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
             if (userProfile.gender != UserGender.notSpecified)
               _buildInfoRow('성별', _getGenderText(userProfile.gender), Icons.person_outline),
             _buildInfoRow('프로필 공개', _getPrivacyText(userProfile.privacyLevel), Icons.visibility_outlined),
-            if (userProfile.interests.isNotEmpty) ..[
+            if (userProfile.interests.isNotEmpty) ...[
               const SizedBox(height: 16),
               Text(
                 '관심사',

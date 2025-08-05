@@ -3,5 +3,6 @@
   "feature_supabase": "/Users/createogu/beyondChasm/mason/beyond_flutter_cli_for_supabase/bricks/feature_supabase",
   "onboarding_supabase": "/Users/createogu/beyondChasm/mason/beyond_flutter_cli_for_supabase/bricks/onboarding_supabase",
   "project_scaffold": "/Users/createogu/beyondChasm/mason/beyond_flutter_cli_for_supabase/bricks/project_scaffold_supabase",
-  "user_supabase": "/Users/createogu/beyondChasm/mason/beyond_flutter_cli_for_supabase/bricks/user_supabase"
+  "user_supabase": "/Users/createogu/beyondChasm/mason/beyond_flutter_cli_for_supabase/bricks/user_supabase",
+  "settings_supabase": "/Users/createogu/beyondChasm/mason/beyond_flutter_cli_for_supabase/bricks/settings_supabase"
 }

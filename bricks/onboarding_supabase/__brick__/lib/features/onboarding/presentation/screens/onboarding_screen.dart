@@ -5,7 +5,6 @@ import '../../data/local/models/onboarding_data.dart';
 import '../../domain/entities/onboarding_page.dart';
 import '../../../../core/theme/theme_colors.dart';
 import '../../../../core/theme/theme_text_styles.dart';
-import '../../../../core/routes/route_names.dart';
 
 /// 온보딩 화면을 표시하는 StatefulWidget
 /// 

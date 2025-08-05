@@ -1,84 +1,121 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
-enum AppThemeMode {
-  system,
-  light,
-  dark,
+enum AppThemeMode { system, light, dark }
+
+class ThemeState {
+  final AppThemeMode themeMode;
+  final bool isLoading;
+
+  const ThemeState({
+    this.themeMode = AppThemeMode.system,
+    this.isLoading = false,
+  });
+
+  ThemeMode get flutterThemeMode => themeMode == AppThemeMode.dark
+      ? ThemeMode.dark
+      : themeMode == AppThemeMode.light
+      ? ThemeMode.light
+      : ThemeMode.system;
+
+  ThemeState copyWith({AppThemeMode? themeMode, bool? isLoading}) {
+    return ThemeState(
+      themeMode: themeMode ?? this.themeMode,
+      isLoading: isLoading ?? this.isLoading,
+    );
+  }
 }
 
-class ThemeProvider extends ChangeNotifier {
+class ThemeNotifier extends StateNotifier<ThemeState> {
   static const String _themeKey = 'theme_mode';
-  
-  AppThemeMode _themeMode = AppThemeMode.system;
   late SharedPreferences _prefs;
-  
-  AppThemeMode get themeMode => _themeMode;
-  
-  ThemeMode get flutterThemeMode => _themeMode == AppThemeMode.dark 
-      ? ThemeMode.dark 
-      : _themeMode == AppThemeMode.light 
-          ? ThemeMode.light 
-          : ThemeMode.system;
-  
-  bool get isDarkMode {
-    if (_themeMode == AppThemeMode.system) {
-      return WidgetsBinding.instance.platformDispatcher.platformBrightness == Brightness.dark;
-    }
-    return _themeMode == AppThemeMode.dark;
+
+  ThemeNotifier() : super(const ThemeState()) {
+    _initialize();
   }
-  
-  Future<void> init() async {
+
+  Future<void> _initialize() async {
     _prefs = await SharedPreferences.getInstance();
-    _loadThemeMode();
+    final themeMode = _loadThemeMode();
+    state = state.copyWith(themeMode: themeMode);
     
     // Listen to system theme changes
     WidgetsBinding.instance.platformDispatcher.onPlatformBrightnessChanged = () {
-      if (_themeMode == AppThemeMode.system) {
-        notifyListeners();
+      if (state.themeMode == AppThemeMode.system) {
+        // Notify listeners when system theme changes
+        state = state.copyWith();
       }
     };
   }
-  
-  void _loadThemeMode() {
+
+  bool get isDarkMode {
+    final currentTheme = state.themeMode;
+    if (currentTheme == AppThemeMode.system) {
+      return WidgetsBinding.instance.platformDispatcher.platformBrightness ==
+          Brightness.dark;
+    }
+    return currentTheme == AppThemeMode.dark;
+  }
+
+  AppThemeMode _loadThemeMode() {
     final savedTheme = _prefs.getString(_themeKey);
     if (savedTheme != null) {
-      _themeMode = AppThemeMode.values.firstWhere(
+      return AppThemeMode.values.firstWhere(
         (e) => e.toString() == savedTheme,
         orElse: () => AppThemeMode.system,
       );
     }
-    notifyListeners();
+    return AppThemeMode.system;
   }
-  
+
   Future<void> setThemeMode(AppThemeMode mode) async {
-    if (_themeMode == mode) return;
-    
-    _themeMode = mode;
-    await _prefs.setString(_themeKey, mode.toString());
-    
-    // Update system UI overlay style
-    _updateSystemUIOverlayStyle();
-    
-    notifyListeners();
+    if (state.themeMode == mode) return;
+
+    state = state.copyWith(isLoading: true);
+
+    try {
+      await _prefs.setString(_themeKey, mode.toString());
+
+      // Update system UI overlay style
+      _updateSystemUIOverlayStyle(mode);
+
+      state = ThemeState(themeMode: mode, isLoading: false);
+    } catch (e) {
+      // Handle error appropriately
+      state = state.copyWith(isLoading: false);
+      rethrow;
+    }
   }
-  
-  void _updateSystemUIOverlayStyle() {
-    final isDark = isDarkMode;
+
+  void _updateSystemUIOverlayStyle(AppThemeMode themeMode) {
+    bool isDark;
+    if (themeMode == AppThemeMode.system) {
+      isDark =
+          WidgetsBinding.instance.platformDispatcher.platformBrightness ==
+          Brightness.dark;
+    } else {
+      isDark = themeMode == AppThemeMode.dark;
+    }
+
     SystemChrome.setSystemUIOverlayStyle(
       SystemUiOverlayStyle(
         statusBarColor: Colors.transparent,
         statusBarIconBrightness: isDark ? Brightness.light : Brightness.dark,
         statusBarBrightness: isDark ? Brightness.dark : Brightness.light,
         systemNavigationBarColor: isDark ? Colors.black : Colors.white,
-        systemNavigationBarIconBrightness: isDark ? Brightness.light : Brightness.dark,
+        systemNavigationBarIconBrightness: isDark
+            ? Brightness.light
+            : Brightness.dark,
       ),
     );
   }
-  
+
   void toggleTheme() {
-    switch (_themeMode) {
+    final currentTheme = state.themeMode;
+    switch (currentTheme) {
       case AppThemeMode.system:
         setThemeMode(AppThemeMode.light);
         break;
@@ -90,9 +127,10 @@ class ThemeProvider extends ChangeNotifier {
         break;
     }
   }
-  
+
   String get themeModeText {
-    switch (_themeMode) {
+    final currentTheme = state.themeMode;
+    switch (currentTheme) {
       case AppThemeMode.system:
         return '시스템';
       case AppThemeMode.light:
@@ -101,9 +139,10 @@ class ThemeProvider extends ChangeNotifier {
         return '다크';
     }
   }
-  
+
   IconData get themeModeIcon {
-    switch (_themeMode) {
+    final currentTheme = state.themeMode;
+    switch (currentTheme) {
       case AppThemeMode.system:
         return Icons.brightness_auto;
       case AppThemeMode.light:
@@ -113,3 +152,7 @@ class ThemeProvider extends ChangeNotifier {
     }
   }
 }
+
+final themeProvider = StateNotifierProvider<ThemeNotifier, ThemeState>((ref) {
+  return ThemeNotifier();
+});
