@@ -8,5 +8,12 @@ abstract class SupabaseAuthRemoteDataSource {
   Future<SupabaseUserModel?> getCurrentUser();
   Stream<SupabaseUserModel?> get authStateChanges;
   Future<SupabaseUserModel> signInWithGoogle();
+  Future<SupabaseUserModel> signInWithApple();
   Future<void> confirmEmail(String token);
+  Future<void> resendEmailConfirmation(String email);
+  Future<void> updatePassword(String newPassword);
+  Future<void> updateEmail(String newEmail);
+  Future<bool> verifySession();
+  Future<void> refreshSession();
+  Future<Map<String, dynamic>> getSessionInfo();
 }

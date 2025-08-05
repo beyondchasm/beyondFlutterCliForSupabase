@@ -29,7 +29,30 @@ class UserRepositoryImpl implements UserRepository {
   }
 
   @override
+  Future<UserProfile> createUserProfile(UserProfile userProfile) async {
+    final userModel = SupabaseUserProfileModel.fromEntity(userProfile);
+    final createdModel = await _remoteDataSource.createUserProfile(userModel);
+    return createdModel.toEntity();
+  }
+
+  @override
   Stream<UserProfile?> getUserProfileStream(String userId) {
     return _remoteDataSource.getUserProfileStream(userId).map((model) => model?.toEntity());
+  }
+
+  @override
+  Future<String> uploadProfileImage(String userId, String filePath) async {
+    return await _remoteDataSource.uploadProfileImage(userId, filePath);
+  }
+
+  @override
+  Future<void> deleteProfileImage(String userId) async {
+    await _remoteDataSource.deleteProfileImage(userId);
+  }
+
+  @override
+  Future<List<UserProfile>> searchUserProfiles(String query, {int limit = 20}) async {
+    final models = await _remoteDataSource.searchUserProfiles(query, limit: limit);
+    return models.map((model) => model.toEntity()).toList();
   }
 }

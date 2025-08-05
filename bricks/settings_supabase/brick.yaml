@@ -1,0 +1,13 @@
+name: settings_supabase
+description: Settings feature with app preferences and user settings management for Supabase projects
+version: 1.0.0+1
+
+environment:
+  mason: ">=0.1.0-dev.26 <1.0.0"
+
+vars:
+  feature_name:
+    type: string
+    description: Name of the settings feature
+    default: settings
+    prompt: What is the name of the settings feature?

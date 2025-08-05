@@ -9,6 +9,15 @@ class UpdateUserProfileUseCase {
   UpdateUserProfileUseCase(this._repository);
 
   Future<UserProfile> call(UserProfile userProfile) async {
-    return await _repository.updateUserProfile(userProfile);
+    final validationErrors = userProfile.validate();
+    if (validationErrors.isNotEmpty) {
+      throw Exception('Validation failed: ${validationErrors.join(', ')}');
+    }
+
+    final updatedProfile = userProfile.copyWith(
+      updatedAt: DateTime.now(),
+    );
+
+    return await _repository.updateUserProfile(updatedProfile);
   }
 }

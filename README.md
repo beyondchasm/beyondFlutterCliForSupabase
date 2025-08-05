@@ -26,8 +26,9 @@ Beyond Flutter CLI는 Flutter 앱을 Clean Architecture 패턴과 Supabase 백�
 ## ✨ 특징
 
 - 🏗️ **Clean Architecture 패턴**: Data, Domain, Presentation 계층 분리
-- 🔐 **완전한 인증 시스템**: 로그인, 회원가입, 비밀번호 재설정
-- 👤 **사용자 프로필 관리**: CRUD 기능이 포함된 사용자 관리 시스템
+- 🔐 **완전한 인증 시스템**: 로그인, 회원가입, 비밀번호 재설정, 소셜 로그인
+- 👤 **고급 사용자 프로필**: 이미지 업로드, 실시간 업데이트, 프로필 완성도 표시
+- ⚙️ **완전한 설정 시스템**: 30+ 설정 옵션, 테마/언어/알림/보안 설정
 - 🚀 **Supabase 통합**: 실시간 데이터베이스, 인증, 스토리지
 - 📱 **현업 수준 UI**: Material Design 3 기반 완성된 화면들
 - 🎯 **UseCase 패턴**: 비즈니스 로직의 명확한 분리
@@ -117,13 +118,14 @@ beyond init [--force]
 새 Flutter 프로젝트의 기본 구조를 생성합니다.
 
 ```bash
-beyond scaffold [--org ORG] [--with-auth] [--with-user] [--with-onboarding]
+beyond scaffold [--org ORG] [--with-auth] [--with-user] [--with-settings] [--with-onboarding]
 ```
 
 **옵션:**
 - `--org`: 조직명 (예: com.mycompany)
-- `--with-auth`: 인증 기능 포함 (로그인, 회원가입, 비밀번호 재설정)
-- `--with-user`: 사용자 프로필 기능 포함 (프로필 조회, 수정)
+- `--with-auth`: 인증 기능 포함 (로그인, 회원가입, 비밀번호 재설정, 소셜 로그인)
+- `--with-user`: 사용자 프로필 기능 포함 (프로필 조회, 수정, 이미지 업로드)
+- `--with-settings`: 앱 설정 기능 포함 (30+ 설정 옵션, 테마/언어/알림/보안)
 - `--with-onboarding`: 온보딩 화면 포함 (앱 소개 슬라이드)
 
 #### `beyond feature`
@@ -138,6 +140,7 @@ beyond feature <feature_name>
 beyond feature product      # 상품 관리 기능
 beyond feature order        # 주문 관리 기능
 beyond feature notification # 알림 기능
+beyond feature settings     # 앱 설정 기능 (완전한 설정 시스템)
 
 # 생성되는 파일들:
 # - Domain Layer: Entity, Repository, UseCases
@@ -196,7 +199,7 @@ lib/
 │       ├── theme_provider.dart
 │       └── theme_text_styles.dart
 ├── features/               # 기능별 모듈
-│   ├── auth/              # 인증 기능
+│   ├── auth/              # 인증 기능 (고급 보안, 소셜 로그인)
 │   │   ├── data/
 │   │   │   ├── remote/
 │   │   │   │   ├── data_sources/
@@ -209,7 +212,9 @@ lib/
 │   │   └── presentation/
 │   │       ├── providers/
 │   │       └── screens/
-│   └── user/              # 사용자 기능
+│   ├── user/              # 사용자 기능 (프로필 이미지, 완성도)
+│   │   └── [similar structure]
+│   └── settings/          # 설정 기능 (30+ 설정 옵션)
 │       └── [similar structure]
 ├── main/                  # 앱 초기화
 │   ├── init_app.dart
@@ -246,27 +251,60 @@ lib/
 - `ResetPasswordUseCase`: 비밀번호 재설정
 - `GetCurrentUserUseCase`: 현재 사용자 정보 조회
 
-**기능:**
-- 이메일/비밀번호 로그인
-- 소셜 로그인 (Google, Apple 지원 준비)
-- 이메일 인증
-- 비밀번호 재설정
-- 자동 로그인 상태 관리
+**고급 기능:**
+- 🔐 **강화된 인증**: 이메일/비밀번호 + 소셜 로그인 (Google, Apple)
+- 🛡️ **보안 강화**: 비밀번호 강도 체크, 실시간 검증
+- 📧 **이메일 검증**: 회원가입 시 이메일 인증 필수
+- 🔄 **자동 로그인**: 세션 관리 및 토큰 갱신
+- ❌ **고급 에러 처리**: 8가지 에러 타입별 맞춤 UI
+- 🎨 **전문적 UI**: Material Design 3, 다크모드 지원
+- ⚡ **실시간 피드백**: 입력 검증, 로딩 상태, 진행률 표시
 
 ### 3. User Feature
 
 사용자 프로필 관리 시스템을 제공합니다.
 
 **포함된 화면:**
-- 사용자 프로필 화면 (`UserProfileScreen`)
-- 프로필 편집 화면 (`EditProfileScreen`)
+- 사용자 프로필 화면 (`UserProfileScreen`) - 프로필 완성도 표시, 상세 정보
+- 고급 프로필 편집 화면 (`EnhancedEditProfileScreen`) - 15+ 필드, 실시간 검증
 
 **포함된 UseCase:**
-- `GetUserProfileUseCase`: 프로필 조회
-- `UpdateUserProfileUseCase`: 프로필 업데이트
+- `GetUserProfileUseCase`: 프로필 조회 및 실시간 스트리밍
+- `CreateUserProfileUseCase`: 신규 프로필 생성
+- `UpdateUserProfileUseCase`: 프로필 업데이트 with 검증
 - `DeleteUserProfileUseCase`: 프로필 삭제
+- `UploadProfileImageUseCase`: 프로필 이미지 업로드 (Supabase Storage)
+- `SearchUserProfilesUseCase`: 사용자 검색
 
-### 4. Generic Feature
+**고급 기능:**
+- 📸 **프로필 이미지 관리**: 카메라/갤러리 선택, 업로드, 삭제
+- 📊 **프로필 완성도**: 실시간 완성률 계산 및 시각적 표시
+- 🔍 **사용자 검색**: 이름, 이메일 기반 사용자 검색
+- ✅ **실시간 검증**: 이메일, 전화번호, URL 형식 검증
+- 🎂 **개인정보**: 생년월일, 성별, 위치, 관심사, 소셜 링크
+- 🔒 **프라이버시**: 공개/친구만/비공개 설정
+
+### 4. Settings Feature
+
+완전한 앱 설정 관리 시스템을 제공합니다.
+
+**포함된 설정 카테고리:**
+- 🎨 **외관**: 테마 모드, 언어 (8개 언어), Material You 색상
+- 🔔 **알림**: 푸시/이메일/인앱 알림, 사운드, 진동 설정
+- 🔒 **보안**: 생체 인증, 자동 잠금, 분석/크래시 리포팅
+- 💾 **데이터**: 자동 백업, 동기화 주기, WiFi 전용, 캐시 관리
+- ♿ **접근성**: 텍스트 크기, 고대비 모드, 애니메이션 줄이기
+- ℹ️ **정보**: 버전, 개인정보처리방침, 고객 지원
+
+**고급 기능:**
+- 📱 **실시간 적용**: 설정 변경 시 즉시 UI 반영
+- 💾 **영속 저장**: SharedPreferences 기반 로컬 저장
+- 📤 **가져오기/내보내기**: JSON 포맷으로 설정 백업/복원
+- 🔄 **기본값 리셋**: 한 번에 모든 설정 초기화
+- 🎛️ **30+ 설정 옵션**: 완전한 앱 커스터마이징
+- 🌍 **다국어 지원**: 8개 언어 + 시스템 언어 자동 감지
+
+### 5. Generic Feature
 
 커스텀 기능을 위한 템플릿을 제공합니다.
 
@@ -487,8 +525,8 @@ cd ecommerce_app
 # 2. CLI 초기화
 beyond init
 
-# 3. 기본 프로젝트 + 인증 + 사용자 기능 생성
-beyond scaffold --org com.mycompany.ecommerce --with-auth --with-user
+# 3. 기본 프로젝트 + 인증 + 사용자 + 설정 기능 생성
+beyond scaffold --org com.mycompany.ecommerce --with-auth --with-user --with-settings
 
 # 4. 추가 기능 생성
 beyond feature product
