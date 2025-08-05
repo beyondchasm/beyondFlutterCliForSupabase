@@ -1,12 +1,12 @@
 import 'package:flutter/material.dart';
-import 'package:provider/provider.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../domain/entities/user_profile.dart';
 import '../providers/user_provider.dart';
 import '../widgets/profile_completion_indicator.dart';
 import '../../../../core/theme/theme_colors.dart';
 import '../../../../core/theme/theme_text_styles.dart';
 
-class UserProfileScreen extends StatefulWidget {
+class UserProfileScreen extends ConsumerStatefulWidget {
   final String userId;
 
   const UserProfileScreen({
@@ -15,16 +15,15 @@ class UserProfileScreen extends StatefulWidget {
   });
 
   @override
-  State<UserProfileScreen> createState() => _UserProfileScreenState();
+  ConsumerState<UserProfileScreen> createState() => _UserProfileScreenState();
 }
 
-class _UserProfileScreenState extends State<UserProfileScreen> {
+class _UserProfileScreenState extends ConsumerState<UserProfileScreen> {
   @override
   void initState() {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      final provider = context.read<UserProvider>();
-      provider.subscribeToUserProfile(widget.userId);
+      ref.read(userProvider.notifier).subscribeToUserProfile(widget.userId);
     });
   }
 
@@ -72,16 +71,94 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
           ),
         ],
       ),
-      body: Consumer<UserProvider>(
-        builder: (context, provider, child) {
-          if (provider.isLoading) {
-            return const Center(
-              child: CircularProgressIndicator(),
-            );
-          }
+      body: Builder(
+        builder: (context) {
+          final userState = ref.watch(userProvider);
+          return userState.when(
+            data: (state) {
+              if (state.isLoading) {
+                return const Center(
+                  child: CircularProgressIndicator(),
+                );
+              }
 
-          if (provider.error != null) {
-            return Center(
+              if (state.error != null) {
+                return Center(
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Icon(
+                        Icons.error_outline,
+                        size: 64,
+                        color: Colors.red[300],
+                      ),
+                      const SizedBox(height: 16),
+                      Text(
+                        '오류가 발생했습니다',
+                        style: ThemeTextStyles.headlineSmall,
+                      ),
+                      const SizedBox(height: 8),
+                      Text(
+                        state.error!,
+                        style: ThemeTextStyles.bodyMedium?.copyWith(
+                          color: Colors.red[300],
+                        ),
+                        textAlign: TextAlign.center,
+                      ),
+                      const SizedBox(height: 16),
+                      ElevatedButton(
+                        onPressed: () => ref.read(userProvider.notifier).getUserProfile(widget.userId),
+                        child: const Text('다시 시도'),
+                      ),
+                    ],
+                  ),
+                );
+              }
+
+              if (state.userProfile == null) {
+                return const Center(
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Icon(
+                        Icons.person_outline,
+                        size: 64,
+                        color: Colors.grey,
+                      ),
+                      SizedBox(height: 16),
+                      Text('프로필을 찾을 수 없습니다'),
+                    ],
+                  ),
+                );
+              }
+
+              return RefreshIndicator(
+                onRefresh: () => ref.read(userProvider.notifier).getUserProfile(widget.userId),
+                child: SingleChildScrollView(
+                  physics: const AlwaysScrollableScrollPhysics(),
+                  padding: const EdgeInsets.all(16),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.center,
+                    children: [
+                      _buildProfileHeader(state.userProfile!),
+                      const SizedBox(height: 24),
+                      ProfileCompletionIndicator(
+                        userProfile: state.userProfile!,
+                        onTap: _navigateToEditProfile,
+                      ),
+                      const SizedBox(height: 24),
+                      _buildProfileInfo(state.userProfile!),
+                      const SizedBox(height: 24),
+                      _buildPersonalInfo(state.userProfile!),
+                      const SizedBox(height: 24),
+                      _buildActionButtons(),
+                    ],
+                  ),
+                ),
+              );
+            },
+            loading: () => const Center(child: CircularProgressIndicator()),
+            error: (error, stack) => Center(
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
@@ -97,7 +174,7 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
                   ),
                   const SizedBox(height: 8),
                   Text(
-                    provider.error!,
+                    error.toString(),
                     style: ThemeTextStyles.bodyMedium?.copyWith(
                       color: Colors.red[300],
                     ),
@@ -105,51 +182,9 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
                   ),
                   const SizedBox(height: 16),
                   ElevatedButton(
-                    onPressed: () => provider.getUserProfile(widget.userId),
+                    onPressed: () => ref.read(userProvider.notifier).getUserProfile(widget.userId),
                     child: const Text('다시 시도'),
                   ),
-                ],
-              ),
-            );
-          }
-
-          if (provider.userProfile == null) {
-            return const Center(
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Icon(
-                    Icons.person_outline,
-                    size: 64,
-                    color: Colors.grey,
-                  ),
-                  SizedBox(height: 16),
-                  Text('프로필을 찾을 수 없습니다'),
-                ],
-              ),
-            );
-          }
-
-          return RefreshIndicator(
-            onRefresh: () => provider.getUserProfile(widget.userId),
-            child: SingleChildScrollView(
-              physics: const AlwaysScrollableScrollPhysics(),
-              padding: const EdgeInsets.all(16),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.center,
-                children: [
-                  _buildProfileHeader(provider.userProfile!),
-                  const SizedBox(height: 24),
-                  ProfileCompletionIndicator(
-                    userProfile: provider.userProfile!,
-                    onTap: _navigateToEditProfile,
-                  ),
-                  const SizedBox(height: 24),
-                  _buildProfileInfo(provider.userProfile!),
-                  const SizedBox(height: 24),
-                  _buildPersonalInfo(provider.userProfile!),
-                  const SizedBox(height: 24),
-                  _buildActionButtons(),
                 ],
               ),
             ),
@@ -499,21 +534,18 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
   }
 
   void _deleteProfile() async {
-    final provider = context.read<UserProvider>();
-    await provider.deleteUserProfile(widget.userId);
+    await ref.read(userProvider.notifier).deleteUserProfile(widget.userId);
 
-    if (mounted && provider.error == null) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('프로필이 삭제되었습니다')),
-      );
-      Navigator.of(context).pop();
-    } else if (mounted && provider.error != null) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('삭제 실패: ${provider.error}'),
-          backgroundColor: Colors.red,
-        ),
-      );
+    if (mounted) {
+      final currentState = ref.read(userProvider);
+      currentState.whenData((state) {
+        if (state.error == null) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('프로필이 삭제되었습니다')),
+          );
+          Navigator.of(context).pop();
+        }
+      });
     }
   }
 

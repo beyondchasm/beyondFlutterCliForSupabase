@@ -405,17 +405,17 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
   }
 
   void _handleMenuAction(String action) async {
-    final provider = context.read<SettingsProvider>();
+    final notifier = ref.read(settingsProvider.notifier);
 
     switch (action) {
       case 'export':
-        await _exportSettings(provider);
+        await _exportSettings(notifier);
         break;
       case 'import':
-        await _importSettings(provider);
+        await _importSettings(notifier);
         break;
       case 'reset':
-        await _showResetConfirmation(provider);
+        await _showResetConfirmation(notifier);
         break;
     }
   }
