@@ -227,5 +227,12 @@ class UserNotifier extends AsyncNotifier<UserState> {
 }
 
 final userProvider = AsyncNotifierProvider<UserNotifier, UserState>(() {
-  return getIt<UserNotifier>();
+  return UserNotifier(
+    getIt<GetUserProfileUseCase>(),
+    getIt<CreateUserProfileUseCase>(),
+    getIt<UpdateUserProfileUseCase>(),
+    getIt<DeleteUserProfileUseCase>(),
+    getIt<UploadProfileImageUseCase>(),
+    getIt<SearchUserProfilesUseCase>(),
+  );
 });

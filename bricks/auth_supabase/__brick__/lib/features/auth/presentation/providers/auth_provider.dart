@@ -185,5 +185,11 @@ class AuthNotifier extends AsyncNotifier<AuthState> {
 }
 
 final authProvider = AsyncNotifierProvider<AuthNotifier, AuthState>(() {
-  return getIt<AuthNotifier>();
+  return AuthNotifier(
+    getIt<SignInUseCase>(),
+    getIt<SignUpUseCase>(),
+    getIt<SignOutUseCase>(),
+    getIt<ResetPasswordUseCase>(),
+    getIt<GetCurrentUserUseCase>(),
+  );
 });

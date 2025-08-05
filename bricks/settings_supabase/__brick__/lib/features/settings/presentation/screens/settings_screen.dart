@@ -16,7 +16,6 @@ class SettingsScreen extends ConsumerStatefulWidget {
 }
 
 class _SettingsScreenState extends ConsumerState<SettingsScreen> {
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -72,7 +71,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
       body: Consumer(
         builder: (context, ref, child) {
           final settingsState = ref.watch(settingsProvider);
-          
+
           return settingsState.when(
             data: (state) {
               if (state.isLoading) {
@@ -119,60 +118,61 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
               return RefreshIndicator(
                 onRefresh: () async => ref.invalidate(settingsProvider),
                 child: SingleChildScrollView(
-              physics: const AlwaysScrollableScrollPhysics(),
-              padding: const EdgeInsets.all(16),
+                  physics: const AlwaysScrollableScrollPhysics(),
+                  padding: const EdgeInsets.all(16),
+                  child: Column(
+                    children: [
+                      _buildAppearanceSection(state, ref),
+                      const SizedBox(height: 16),
+                      _buildNotificationsSection(state, ref),
+                      const SizedBox(height: 16),
+                      _buildPrivacySecuritySection(state, ref),
+                      const SizedBox(height: 16),
+                      _buildDataStorageSection(state, ref),
+                      const SizedBox(height: 16),
+                      _buildAccessibilitySection(state, ref),
+                      const SizedBox(height: 16),
+                      _buildAboutSection(state),
+                      const SizedBox(height: 32),
+                    ],
+                  ),
+                ),
+              );
+            },
+            loading: () => const Center(child: CircularProgressIndicator()),
+            error: (error, stack) => Center(
               child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  _buildAppearanceSection(state, ref),
+                  Icon(
+                    Icons.error_outline,
+                    size: 64,
+                    color: Theme.of(context).colorScheme.error,
+                  ),
                   const SizedBox(height: 16),
-                  _buildNotificationsSection(state, ref),
+                  Text(
+                    'Error loading settings',
+                    style: Theme.of(context).textTheme.headlineSmall,
+                  ),
+                  const SizedBox(height: 8),
+                  Text(
+                    error.toString(),
+                    style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                      color: Theme.of(context).colorScheme.error,
+                    ),
+                    textAlign: TextAlign.center,
+                  ),
                   const SizedBox(height: 16),
-                  _buildPrivacySecuritySection(state, ref),
-                  const SizedBox(height: 16),
-                  _buildDataStorageSection(state, ref),
-                  const SizedBox(height: 16),
-                  _buildAccessibilitySection(state, ref),
-                  const SizedBox(height: 16),
-                  _buildAboutSection(state),
-                  const SizedBox(height: 32),
+                  ElevatedButton(
+                    onPressed: () => ref.invalidate(settingsProvider),
+                    child: const Text('Retry'),
+                  ),
                 ],
               ),
             ),
           );
         },
-        loading: () => const Center(child: CircularProgressIndicator()),
-        error: (error, stack) => Center(
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Icon(
-                Icons.error_outline,
-                size: 64,
-                color: Theme.of(context).colorScheme.error,
-              ),
-              const SizedBox(height: 16),
-              Text(
-                'Error loading settings',
-                style: Theme.of(context).textTheme.headlineSmall,
-              ),
-              const SizedBox(height: 8),
-              Text(
-                error.toString(),
-                style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                  color: Theme.of(context).colorScheme.error,
-                ),
-                textAlign: TextAlign.center,
-              ),
-              const SizedBox(height: 16),
-              ElevatedButton(
-                onPressed: () => ref.invalidate(settingsProvider),
-                child: const Text('Retry'),
-              ),
-            ],
-          ),
-        ),
-      );
-    },
+      ),
     );
   }
 
@@ -200,7 +200,9 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
           subtitle: 'Use dynamic colors from wallpaper',
           leading: const Icon(Icons.auto_awesome_outlined),
           value: settings.useMaterialYou,
-          onChanged: (value) => ref.read(settingsProvider.notifier).updateSetting('useMaterialYou', value),
+          onChanged: (value) => ref
+              .read(settingsProvider.notifier)
+              .updateSetting('useMaterialYou', value),
         ),
       ],
     );
@@ -218,39 +220,45 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
           subtitle: 'Receive notifications on your device',
           leading: const Icon(Icons.notifications_active_outlined),
           value: settings.pushNotificationsEnabled,
-          onChanged: (value) =>
-              ref.read(settingsProvider.notifier).updateSetting('pushNotificationsEnabled', value),
+          onChanged: (value) => ref
+              .read(settingsProvider.notifier)
+              .updateSetting('pushNotificationsEnabled', value),
         ),
         SettingsTile.switchTile(
           title: 'Email Notifications',
           subtitle: 'Receive notifications via email',
           leading: const Icon(Icons.email_outlined),
           value: settings.emailNotificationsEnabled,
-          onChanged: (value) =>
-              ref.read(settingsProvider.notifier).updateSetting('emailNotificationsEnabled', value),
+          onChanged: (value) => ref
+              .read(settingsProvider.notifier)
+              .updateSetting('emailNotificationsEnabled', value),
         ),
         SettingsTile.switchTile(
           title: 'In-App Notifications',
           subtitle: 'Show notifications within the app',
           leading: const Icon(Icons.app_blocking_outlined),
           value: settings.inAppNotificationsEnabled,
-          onChanged: (value) =>
-              ref.read(settingsProvider.notifier).updateSetting('inAppNotificationsEnabled', value),
+          onChanged: (value) => ref
+              .read(settingsProvider.notifier)
+              .updateSetting('inAppNotificationsEnabled', value),
         ),
         SettingsTile.switchTile(
           title: 'Sound',
           subtitle: 'Play sound for notifications',
           leading: const Icon(Icons.volume_up_outlined),
           value: settings.soundEnabled,
-          onChanged: (value) => ref.read(settingsProvider.notifier).updateSetting('soundEnabled', value),
+          onChanged: (value) => ref
+              .read(settingsProvider.notifier)
+              .updateSetting('soundEnabled', value),
         ),
         SettingsTile.switchTile(
           title: 'Vibration',
           subtitle: 'Vibrate for notifications',
           leading: const Icon(Icons.vibration_outlined),
           value: settings.vibrationEnabled,
-          onChanged: (value) =>
-              ref.read(settingsProvider.notifier).updateSetting('vibrationEnabled', value),
+          onChanged: (value) => ref
+              .read(settingsProvider.notifier)
+              .updateSetting('vibrationEnabled', value),
         ),
       ],
     );
@@ -268,7 +276,8 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
           subtitle: 'Use fingerprint or face unlock',
           leading: const Icon(Icons.fingerprint_outlined),
           value: settings.biometricAuthEnabled,
-          onChanged: (value) => ref.read(settingsProvider.notifier).toggleBiometricAuth(value),
+          onChanged: (value) =>
+              ref.read(settingsProvider.notifier).toggleBiometricAuth(value),
         ),
         SettingsTile(
           title: 'Auto Lock',
@@ -281,23 +290,26 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
           subtitle: 'Ask for authentication before sensitive operations',
           leading: const Icon(Icons.security_outlined),
           value: settings.requireAuthForSensitiveActions,
-          onChanged: (value) =>
-              ref.read(settingsProvider.notifier).updateSetting('requireAuthForSensitiveActions', value),
+          onChanged: (value) => ref
+              .read(settingsProvider.notifier)
+              .updateSetting('requireAuthForSensitiveActions', value),
         ),
         SettingsTile.switchTile(
           title: 'Analytics',
           subtitle: 'Help improve the app by sharing usage data',
           leading: const Icon(Icons.analytics_outlined),
           value: settings.analyticsEnabled,
-          onChanged: (value) => ref.read(settingsProvider.notifier).toggleAnalytics(value),
+          onChanged: (value) =>
+              ref.read(settingsProvider.notifier).toggleAnalytics(value),
         ),
         SettingsTile.switchTile(
           title: 'Crash Reporting',
           subtitle: 'Automatically send crash reports',
           leading: const Icon(Icons.bug_report_outlined),
           value: settings.crashReportingEnabled,
-          onChanged: (value) =>
-              ref.read(settingsProvider.notifier).updateSetting('crashReportingEnabled', value),
+          onChanged: (value) => ref
+              .read(settingsProvider.notifier)
+              .updateSetting('crashReportingEnabled', value),
         ),
       ],
     );
@@ -315,8 +327,9 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
           subtitle: 'Automatically backup your data',
           leading: const Icon(Icons.backup_outlined),
           value: settings.autoBackupEnabled,
-          onChanged: (value) =>
-              ref.read(settingsProvider.notifier).updateSetting('autoBackupEnabled', value),
+          onChanged: (value) => ref
+              .read(settingsProvider.notifier)
+              .updateSetting('autoBackupEnabled', value),
         ),
         SettingsTile(
           title: 'Sync Frequency',
@@ -329,7 +342,9 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
           subtitle: 'Only sync when connected to WiFi',
           leading: const Icon(Icons.wifi_outlined),
           value: settings.wifiOnlySync,
-          onChanged: (value) => ref.read(settingsProvider.notifier).updateSetting('wifiOnlySync', value),
+          onChanged: (value) => ref
+              .read(settingsProvider.notifier)
+              .updateSetting('wifiOnlySync', value),
         ),
         SettingsTile(
           title: 'Cache Size',
@@ -359,16 +374,18 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
           subtitle: 'Increase contrast for better visibility',
           leading: const Icon(Icons.contrast_outlined),
           value: settings.highContrastEnabled,
-          onChanged: (value) =>
-              ref.read(settingsProvider.notifier).updateSetting('highContrastEnabled', value),
+          onChanged: (value) => ref
+              .read(settingsProvider.notifier)
+              .updateSetting('highContrastEnabled', value),
         ),
         SettingsTile.switchTile(
           title: 'Reduce Animations',
           subtitle: 'Minimize motion for better focus',
           leading: const Icon(Icons.motion_photos_off_outlined),
           value: settings.reduceAnimationsEnabled,
-          onChanged: (value) =>
-              ref.read(settingsProvider.notifier).updateSetting('reduceAnimationsEnabled', value),
+          onChanged: (value) => ref
+              .read(settingsProvider.notifier)
+              .updateSetting('reduceAnimationsEnabled', value),
         ),
       ],
     );
@@ -450,7 +467,11 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
     showModalBottomSheet(
       context: context,
       builder: (context) => AutoLockSelector(
-        currentDuration: ref.read(settingsProvider).value!.settings!.autoLockDuration,
+        currentDuration: ref
+            .read(settingsProvider)
+            .value!
+            .settings!
+            .autoLockDuration,
         onDurationChanged: (duration) {
           ref.read(settingsProvider.notifier).updateAutoLockDuration(duration);
           Navigator.pop(context);
@@ -459,10 +480,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
     );
   }
 
-  void _showSyncFrequencySelector(
-    BuildContext context,
-    WidgetRef ref,
-  ) {
+  void _showSyncFrequencySelector(BuildContext context, WidgetRef ref) {
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
@@ -473,10 +491,16 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
             return RadioListTile<DataSyncFrequency>(
               title: Text(frequency.displayName),
               value: frequency,
-              groupValue: ref.read(settingsProvider).value!.settings!.dataSyncFrequency,
+              groupValue: ref
+                  .read(settingsProvider)
+                  .value!
+                  .settings!
+                  .dataSyncFrequency,
               onChanged: (value) {
                 if (value != null) {
-                  ref.read(settingsProvider.notifier).updateSetting('dataSyncFrequency', value.name);
+                  ref
+                      .read(settingsProvider.notifier)
+                      .updateSetting('dataSyncFrequency', value.name);
                   Navigator.pop(context);
                 }
               },
@@ -501,7 +525,9 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
               groupValue: ref.read(settingsProvider).value!.settings!.cacheSize,
               onChanged: (value) {
                 if (value != null) {
-                  ref.read(settingsProvider.notifier).updateSetting('cacheSize', value.name);
+                  ref
+                      .read(settingsProvider.notifier)
+                      .updateSetting('cacheSize', value.name);
                   Navigator.pop(context);
                 }
               },
@@ -527,7 +553,8 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
               min: 0.5,
               max: 3.0,
               divisions: 10,
-              label: '${(ref.read(settingsProvider).value!.settings!.textScale * 100).round()}%',
+              label:
+                  '${(ref.read(settingsProvider).value!.settings!.textScale * 100).round()}%',
               onChanged: (value) {
                 ref.read(settingsProvider.notifier).updateTextScale(value);
               },

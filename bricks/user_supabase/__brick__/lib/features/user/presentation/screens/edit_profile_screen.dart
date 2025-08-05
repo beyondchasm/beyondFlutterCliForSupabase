@@ -8,10 +8,7 @@ import '../../../../core/theme/theme_text_styles.dart';
 class EditProfileScreen extends ConsumerStatefulWidget {
   final UserProfile userProfile;
 
-  const EditProfileScreen({
-    super.key,
-    required this.userProfile,
-  });
+  const EditProfileScreen({super.key, required this.userProfile});
 
   @override
   ConsumerState<EditProfileScreen> createState() => _EditProfileScreenState();
@@ -45,9 +42,10 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen> {
   }
 
   void _onTextChanged() {
-    final hasChanges = _displayNameController.text != (widget.userProfile.displayName ?? '') ||
+    final hasChanges =
+        _displayNameController.text != (widget.userProfile.displayName ?? '') ||
         _phoneNumberController.text != (widget.userProfile.phoneNumber ?? '');
-    
+
     if (hasChanges != _hasChanges) {
       setState(() {
         _hasChanges = hasChanges;
@@ -68,27 +66,31 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen> {
               onPressed: _saveProfile,
               child: const Text(
                 '저장',
-                style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
+                style: TextStyle(
+                  color: Colors.white,
+                  fontWeight: FontWeight.bold,
+                ),
               ),
             ),
         ],
       ),
       body: Form(
-            key: _formKey,
-            child: SingleChildScrollView(
-              padding: const EdgeInsets.all(16),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  _buildProfileImageSection(),
-                  const SizedBox(height: 32),
-                  _buildFormFields(),
-                  const SizedBox(height: 32),
-                  _buildSaveButton(),
-                ],
-              ),
-            ),
-          );
+        key: _formKey,
+        child: SingleChildScrollView(
+          padding: const EdgeInsets.all(16),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              _buildProfileImageSection(),
+              const SizedBox(height: 32),
+              _buildFormFields(),
+              const SizedBox(height: 32),
+              _buildSaveButton(),
+            ],
+          ),
+        ),
+      ),
+    );
   }
 
   Widget _buildProfileImageSection() {
@@ -104,11 +106,7 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen> {
                     ? NetworkImage(widget.userProfile.photoUrl!)
                     : null,
                 child: widget.userProfile.photoUrl == null
-                    ? Icon(
-                        Icons.person,
-                        size: 60,
-                        color: ThemeColors.primary,
-                      )
+                    ? Icon(Icons.person, size: 60, color: ThemeColors.primary)
                     : null,
               ),
               Positioned(
@@ -121,7 +119,11 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen> {
                     border: Border.all(color: Colors.white, width: 2),
                   ),
                   child: IconButton(
-                    icon: const Icon(Icons.camera_alt, color: Colors.white, size: 20),
+                    icon: const Icon(
+                      Icons.camera_alt,
+                      color: Colors.white,
+                      size: 20,
+                    ),
                     onPressed: _changeProfileImage,
                     padding: const EdgeInsets.all(8),
                     constraints: const BoxConstraints(),
@@ -146,10 +148,7 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(
-          '기본 정보',
-          style: ThemeTextStyles.titleLarge,
-        ),
+        Text('기본 정보', style: ThemeTextStyles.titleLarge),
         const SizedBox(height: 16),
         TextFormField(
           controller: _displayNameController,
@@ -212,35 +211,37 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen> {
           foregroundColor: Colors.white,
           padding: const EdgeInsets.symmetric(vertical: 16),
         ),
-        child: ref.watch(userProvider).when(
-          data: (state) => state.isLoading
-              ? const SizedBox(
-                  height: 20,
-                  width: 20,
-                  child: CircularProgressIndicator(
-                    strokeWidth: 2,
-                    valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
-                  ),
-                )
-              : const Text('변경사항 저장'),
-          loading: () => const SizedBox(
-            height: 20,
-            width: 20,
-            child: CircularProgressIndicator(
-              strokeWidth: 2,
-              valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+        child: ref
+            .watch(userProvider)
+            .when(
+              data: (state) => state.isLoading
+                  ? const SizedBox(
+                      height: 20,
+                      width: 20,
+                      child: CircularProgressIndicator(
+                        strokeWidth: 2,
+                        valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+                      ),
+                    )
+                  : const Text('변경사항 저장'),
+              loading: () => const SizedBox(
+                height: 20,
+                width: 20,
+                child: CircularProgressIndicator(
+                  strokeWidth: 2,
+                  valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+                ),
+              ),
+              error: (error, stack) => const Text('변경사항 저장'),
             ),
-          ),
-          error: (error, stack) => const Text('변경사항 저장'),
-        ),
       ),
     );
   }
 
   void _changeProfileImage() {
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text('프로필 사진 변경 기능은 추후 구현 예정입니다')),
-    );
+    ScaffoldMessenger.of(
+      context,
+    ).showSnackBar(const SnackBar(content: Text('프로필 사진 변경 기능은 추후 구현 예정입니다')));
   }
 
   void _saveProfile() async {
@@ -250,8 +251,8 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen> {
 
     final updatedProfile = widget.userProfile.copyWith(
       displayName: _displayNameController.text.trim(),
-      phoneNumber: _phoneNumberController.text.trim().isEmpty 
-          ? null 
+      phoneNumber: _phoneNumberController.text.trim().isEmpty
+          ? null
           : _phoneNumberController.text.trim(),
       updatedAt: DateTime.now(),
     );
@@ -262,9 +263,9 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen> {
       final userState = ref.read(userProvider);
       userState.whenData((state) {
         if (state.error == null) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('프로필이 성공적으로 업데이트되었습니다')),
-          );
+          ScaffoldMessenger.of(
+            context,
+          ).showSnackBar(const SnackBar(content: Text('프로필이 성공적으로 업데이트되었습니다')));
           Navigator.of(context).pop();
         } else {
           ScaffoldMessenger.of(context).showSnackBar(

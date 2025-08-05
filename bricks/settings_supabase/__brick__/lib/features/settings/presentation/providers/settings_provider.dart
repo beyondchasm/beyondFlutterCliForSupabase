@@ -266,6 +266,11 @@ class SettingsNotifier extends AsyncNotifier<SettingsState> {
 
 final settingsProvider = AsyncNotifierProvider<SettingsNotifier, SettingsState>(
   () {
-    return getIt<SettingsNotifier>();
+    return SettingsNotifier(
+      getIt<GetSettingsUseCase>(),
+      getIt<UpdateSettingsUseCase>(),
+      getIt<ResetSettingsUseCase>(),
+      getIt<ExportImportSettingsUseCase>(),
+    );
   },
 );

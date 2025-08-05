@@ -137,5 +137,10 @@ class {{feature_name.pascalCase()}}Notifier extends AsyncNotifier<{{feature_name
 }
 
 final {{feature_name.camelCase()}}Provider = AsyncNotifierProvider<{{feature_name.pascalCase()}}Notifier, {{feature_name.pascalCase()}}State>(() {
-  return getIt<{{feature_name.pascalCase()}}Notifier>();
+  return {{feature_name.pascalCase()}}Notifier(
+    getIt<Get{{feature_name.pascalCase()}}UseCase>(),
+    getIt<Create{{feature_name.pascalCase()}}UseCase>(),
+    getIt<Update{{feature_name.pascalCase()}}UseCase>(),
+    getIt<Delete{{feature_name.pascalCase()}}UseCase>(),
+  );
 });
