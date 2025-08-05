@@ -13,7 +13,7 @@ class SplashScreen extends StatefulWidget {
   State<SplashScreen> createState() => _SplashScreenState();
 }
 
-class _SplashScreenState extends State<SplashScreen> 
+class _SplashScreenState extends State<SplashScreen>
     with SingleTickerProviderStateMixin {
   late AnimationController _animationController;
   late Animation<double> _fadeAnimation;
@@ -32,21 +32,13 @@ class _SplashScreenState extends State<SplashScreen>
       vsync: this,
     );
 
-    _fadeAnimation = Tween<double>(
-      begin: 0.0,
-      end: 1.0,
-    ).animate(CurvedAnimation(
-      parent: _animationController,
-      curve: Curves.easeIn,
-    ));
+    _fadeAnimation = Tween<double>(begin: 0.0, end: 1.0).animate(
+      CurvedAnimation(parent: _animationController, curve: Curves.easeIn),
+    );
 
-    _scaleAnimation = Tween<double>(
-      begin: 0.5,
-      end: 1.0,
-    ).animate(CurvedAnimation(
-      parent: _animationController,
-      curve: Curves.elasticOut,
-    ));
+    _scaleAnimation = Tween<double>(begin: 0.5, end: 1.0).animate(
+      CurvedAnimation(parent: _animationController, curve: Curves.elasticOut),
+    );
 
     _animationController.forward();
   }
@@ -54,23 +46,24 @@ class _SplashScreenState extends State<SplashScreen>
   Future<void> _navigateToHome() async {
     // 스플래시 애니메이션과 초기화 대기
     await Future.delayed(const Duration(seconds: 3));
-    
+
     if (!mounted) return;
-    
+
     try {
       // 온보딩 완료 여부 확인
       final prefs = await SharedPreferences.getInstance();
-      final hasCompletedOnboarding = prefs.getBool('onboarding_completed') ?? false;
-      
+      final hasCompletedOnboarding =
+          prefs.getBool('onboarding_completed') ?? false;
+
       // 온보딩을 완료하지 않은 경우 온보딩 페이지로
       if (!hasCompletedOnboarding) {
         context.go(RouteNames.onboarding);
         return;
       }
-      
+
       // 인증 상태 확인
       final currentUser = Supabase.instance.client.auth.currentUser;
-      
+
       if (currentUser != null) {
         // 로그인된 사용자는 홈 화면으로
         context.go(RouteNames.home);
@@ -127,9 +120,9 @@ class _SplashScreenState extends State<SplashScreen>
                         color: ThemeColors.primary,
                       ),
                     ),
-                    
+
                     const SizedBox(height: 24),
-                    
+
                     // App Name
                     Text(
                       'Flutter Clean Architecture',
@@ -139,9 +132,9 @@ class _SplashScreenState extends State<SplashScreen>
                       ),
                       textAlign: TextAlign.center,
                     ),
-                    
+
                     const SizedBox(height: 8),
-                    
+
                     // Subtitle
                     Text(
                       'Supabase Edition',
@@ -150,9 +143,9 @@ class _SplashScreenState extends State<SplashScreen>
                       ),
                       textAlign: TextAlign.center,
                     ),
-                    
+
                     const SizedBox(height: 48),
-                    
+
                     // Loading Indicator
                     const SizedBox(
                       width: 24,

@@ -1,40 +1,31 @@
 import 'package:flutter/material.dart';
-import 'package:provider/provider.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../../core/routes/app_router.dart';
 import '../../../../core/theme/theme_colors.dart';
 import '../../../../core/theme/theme_text_styles.dart';
 import '../providers/{{feature_name}}_provider.dart';
 
-class {{feature_name.pascalCase()}}Screen extends StatefulWidget {
+class {{feature_name.pascalCase()}}Screen extends ConsumerStatefulWidget {
   const {{feature_name.pascalCase()}}Screen({super.key});
 
   @override
-  State<{{feature_name.pascalCase()}}Screen> createState() => _{{feature_name.pascalCase()}}ScreenState();
+  ConsumerState<{{feature_name.pascalCase()}}Screen> createState() => _{{feature_name.pascalCase()}}ScreenState();
 }
 
-class _{{feature_name.pascalCase()}}ScreenState extends State<{{feature_name.pascalCase()}}Screen> {
-  late {{feature_name.pascalCase()}}Provider _provider;
-
+class _{{feature_name.pascalCase()}}ScreenState extends ConsumerState<{{feature_name.pascalCase()}}Screen> {
   @override
   void initState() {
     super.initState();
-    _provider = {{feature_name.pascalCase()}}Provider();
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      _provider.loadAll();
+      ref.read({{feature_name.camelCase()}}Provider.notifier).loadAll();
     });
   }
 
   @override
-  void dispose() {
-    _provider.dispose();
-    super.dispose();
-  }
-
-  @override
   Widget build(BuildContext context) {
-    return ChangeNotifierProvider.value(
-      value: _provider,
-      child: Scaffold(
+    final {{feature_name.camelCase()}}State = ref.watch({{feature_name.camelCase()}}Provider);
+
+    return Scaffold(
         appBar: AppBar(
           title: Text(
             '{{feature_name.titleCase()}}',
@@ -52,15 +43,15 @@ class _{{feature_name.pascalCase()}}ScreenState extends State<{{feature_name.pas
             ),
           ],
         ),
-        body: Consumer<{{feature_name.pascalCase()}}Provider>(
-          builder: (context, provider, child) {
-            if (provider.isLoading) {
+        body: {{feature_name.camelCase()}}State.when(
+          data: (state) {
+            if (state.isLoading) {
               return const Center(
                 child: CircularProgressIndicator(),
               );
             }
 
-            if (provider.error != null) {
+            if (state.error != null) {
               return Center(
                 child: Padding(
                   padding: const EdgeInsets.all(16.0),
@@ -80,7 +71,7 @@ class _{{feature_name.pascalCase()}}ScreenState extends State<{{feature_name.pas
                       ),
                       const SizedBox(height: 8),
                       Text(
-                        provider.error!,
+                        state.error!,
                         style: ThemeTextStyles.bodyMedium.copyWith(
                           color: ThemeColors.textSecondary,
                         ),
@@ -88,7 +79,7 @@ class _{{feature_name.pascalCase()}}ScreenState extends State<{{feature_name.pas
                       ),
                       const SizedBox(height: 24),
                       ElevatedButton.icon(
-                        onPressed: () => provider.loadAll(),
+                        onPressed: () => ref.read({{feature_name.camelCase()}}Provider.notifier).loadAll(),
                         icon: const Icon(Icons.refresh),
                         label: const Text('Try Again'),
                       ),
@@ -98,7 +89,7 @@ class _{{feature_name.pascalCase()}}ScreenState extends State<{{feature_name.pas
               );
             }
 
-            if (provider.items.isEmpty) {
+            if (state.items.isEmpty) {
               return Center(
                 child: Padding(
                   padding: const EdgeInsets.all(16.0),
@@ -131,12 +122,12 @@ class _{{feature_name.pascalCase()}}ScreenState extends State<{{feature_name.pas
             }
 
             return RefreshIndicator(
-              onRefresh: provider.loadAll,
+              onRefresh: () => ref.read({{feature_name.camelCase()}}Provider.notifier).loadAll(),
               child: ListView.builder(
                 padding: const EdgeInsets.all(16),
-                itemCount: provider.items.length,
+                itemCount: state.items.length,
                 itemBuilder: (context, index) {
-                  final item = provider.items[index];
+                  final item = state.items[index];
                   return Card(
                     margin: const EdgeInsets.only(bottom: 12),
                     child: ListTile(
@@ -192,12 +183,47 @@ class _{{feature_name.pascalCase()}}ScreenState extends State<{{feature_name.pas
               ),
             );
           },
+          loading: () => const Center(child: CircularProgressIndicator()),
+          error: (error, stack) => Center(
+            child: Padding(
+              padding: const EdgeInsets.all(16.0),
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Icon(
+                    Icons.error_outline,
+                    size: 64,
+                    color: ThemeColors.error,
+                  ),
+                  const SizedBox(height: 16),
+                  Text(
+                    'Oops! Something went wrong',
+                    style: ThemeTextStyles.headlineSmall,
+                    textAlign: TextAlign.center,
+                  ),
+                  const SizedBox(height: 8),
+                  Text(
+                    error.toString(),
+                    style: ThemeTextStyles.bodyMedium.copyWith(
+                      color: ThemeColors.textSecondary,
+                    ),
+                    textAlign: TextAlign.center,
+                  ),
+                  const SizedBox(height: 24),
+                  ElevatedButton.icon(
+                    onPressed: () => ref.read({{feature_name.camelCase()}}Provider.notifier).loadAll(),
+                    icon: const Icon(Icons.refresh),
+                    label: const Text('Try Again'),
+                  ),
+                ],
+              ),
+            ),
+          ),
         ),
         floatingActionButton: FloatingActionButton(
           onPressed: _createNewItem,
           child: const Icon(Icons.add),
         ),
-      ),
     );
   }
 
@@ -235,7 +261,7 @@ class _{{feature_name.pascalCase()}}ScreenState extends State<{{feature_name.pas
             onPressed: () {
               AppRouter.pop();
               if (item.id != null) {
-                _provider.delete{{feature_name.pascalCase()}}(item.id!);
+                ref.read({{feature_name.camelCase()}}Provider.notifier).delete(item.id!);
                 AppRouter.showSnackbar('{{feature_name.titleCase()}} deleted successfully');
               }
             },

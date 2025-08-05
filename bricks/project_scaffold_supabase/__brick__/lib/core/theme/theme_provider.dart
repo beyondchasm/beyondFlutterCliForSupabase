@@ -29,30 +29,29 @@ class ThemeState {
   }
 }
 
-class ThemeNotifier extends StateNotifier<ThemeState> {
+class ThemeNotifier extends AsyncNotifier<ThemeState> {
   static const String _themeKey = 'theme_mode';
   late SharedPreferences _prefs;
 
-  ThemeNotifier() : super(const ThemeState()) {
-    _initialize();
-  }
-
-  Future<void> _initialize() async {
+  @override
+  FutureOr<ThemeState> build() async {
     _prefs = await SharedPreferences.getInstance();
     final themeMode = _loadThemeMode();
-    state = state.copyWith(themeMode: themeMode);
     
     // Listen to system theme changes
-    WidgetsBinding.instance.platformDispatcher.onPlatformBrightnessChanged = () {
-      if (state.themeMode == AppThemeMode.system) {
-        // Notify listeners when system theme changes
-        state = state.copyWith();
-      }
-    };
+    WidgetsBinding.instance.platformDispatcher.onPlatformBrightnessChanged =
+        () {
+          if (state.value?.themeMode == AppThemeMode.system) {
+            // Notify listeners when system theme changes
+            state = AsyncValue.data(state.value!.copyWith());
+          }
+        };
+    
+    return ThemeState(themeMode: themeMode);
   }
 
   bool get isDarkMode {
-    final currentTheme = state.themeMode;
+    final currentTheme = state.value?.themeMode ?? AppThemeMode.system;
     if (currentTheme == AppThemeMode.system) {
       return WidgetsBinding.instance.platformDispatcher.platformBrightness ==
           Brightness.dark;
@@ -72,9 +71,11 @@ class ThemeNotifier extends StateNotifier<ThemeState> {
   }
 
   Future<void> setThemeMode(AppThemeMode mode) async {
-    if (state.themeMode == mode) return;
+    if (state.value?.themeMode == mode) return;
 
-    state = state.copyWith(isLoading: true);
+    state = AsyncValue.data(
+      state.value!.copyWith(isLoading: true),
+    );
 
     try {
       await _prefs.setString(_themeKey, mode.toString());
@@ -82,10 +83,10 @@ class ThemeNotifier extends StateNotifier<ThemeState> {
       // Update system UI overlay style
       _updateSystemUIOverlayStyle(mode);
 
-      state = ThemeState(themeMode: mode, isLoading: false);
+      state = AsyncValue.data(ThemeState(themeMode: mode, isLoading: false));
     } catch (e) {
       // Handle error appropriately
-      state = state.copyWith(isLoading: false);
+      state = AsyncValue.data(state.value!.copyWith(isLoading: false));
       rethrow;
     }
   }
@@ -114,7 +115,7 @@ class ThemeNotifier extends StateNotifier<ThemeState> {
   }
 
   void toggleTheme() {
-    final currentTheme = state.themeMode;
+    final currentTheme = state.value?.themeMode ?? AppThemeMode.system;
     switch (currentTheme) {
       case AppThemeMode.system:
         setThemeMode(AppThemeMode.light);
@@ -129,7 +130,7 @@ class ThemeNotifier extends StateNotifier<ThemeState> {
   }
 
   String get themeModeText {
-    final currentTheme = state.themeMode;
+    final currentTheme = state.value?.themeMode ?? AppThemeMode.system;
     switch (currentTheme) {
       case AppThemeMode.system:
         return '시스템';
@@ -141,7 +142,7 @@ class ThemeNotifier extends StateNotifier<ThemeState> {
   }
 
   IconData get themeModeIcon {
-    final currentTheme = state.themeMode;
+    final currentTheme = state.value?.themeMode ?? AppThemeMode.system;
     switch (currentTheme) {
       case AppThemeMode.system:
         return Icons.brightness_auto;
@@ -153,6 +154,6 @@ class ThemeNotifier extends StateNotifier<ThemeState> {
   }
 }
 
-final themeProvider = StateNotifierProvider<ThemeNotifier, ThemeState>((ref) {
+final themeNotifierProvider = AsyncNotifierProvider<ThemeNotifier, ThemeState>(() {
   return ThemeNotifier();
 });

@@ -1,97 +1,141 @@
-import 'package:flutter/foundation.dart';
-import '../../../../core/di/service_locator.dart';
+import 'dart:async';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:injectable/injectable.dart';
 import '../../domain/entities/{{feature_name}}.dart';
 import '../../domain/use_cases/get_{{feature_name}}_usecase.dart';
 import '../../domain/use_cases/create_{{feature_name}}_usecase.dart';
 import '../../domain/use_cases/update_{{feature_name}}_usecase.dart';
 import '../../domain/use_cases/delete_{{feature_name}}_usecase.dart';
+import '../../../../core/di/injection.dart';
 
-class {{feature_name.pascalCase()}}Provider extends ChangeNotifier {
-  late final Get{{feature_name.pascalCase()}}UseCase _get{{feature_name.pascalCase()}}UseCase;
-  late final Create{{feature_name.pascalCase()}}UseCase _create{{feature_name.pascalCase()}}UseCase;
-  late final Update{{feature_name.pascalCase()}}UseCase _update{{feature_name.pascalCase()}}UseCase;
-  late final Delete{{feature_name.pascalCase()}}UseCase _delete{{feature_name.pascalCase()}}UseCase;
+class {{feature_name.pascalCase()}}State {
+  final List<{{feature_name.pascalCase()}}> items;
+  final bool isLoading;
+  final String? error;
 
-  {{feature_name.pascalCase()}}Provider() {
-    _get{{feature_name.pascalCase()}}UseCase = ServiceLocator.get<Get{{feature_name.pascalCase()}}UseCase>();
-    _create{{feature_name.pascalCase()}}UseCase = ServiceLocator.get<Create{{feature_name.pascalCase()}}UseCase>();
-    _update{{feature_name.pascalCase()}}UseCase = ServiceLocator.get<Update{{feature_name.pascalCase()}}UseCase>();
-    _delete{{feature_name.pascalCase()}}UseCase = ServiceLocator.get<Delete{{feature_name.pascalCase()}}UseCase>();
-  }
+  const {{feature_name.pascalCase()}}State({
+    this.items = const [],
+    this.isLoading = false,
+    this.error,
+  });
 
-  List<{{feature_name.pascalCase()}}> _items = [];
-  bool _isLoading = false;
-  String? _error;
-
-  List<{{feature_name.pascalCase()}}> get items => _items;
-  bool get isLoading => _isLoading;
-  String? get error => _error;
-
-  Future<void> loadAll() async {
-    _isLoading = true;
-    _error = null;
-    notifyListeners();
-
-    try {
-      _items = await _get{{feature_name.pascalCase()}}UseCase();
-    } catch (e) {
-      _error = e.toString();
-    } finally {
-      _isLoading = false;
-      notifyListeners();
-    }
-  }
-
-  Future<void> create{{feature_name.pascalCase()}}({{feature_name.pascalCase()}} item) async {
-    _isLoading = true;
-    _error = null;
-    notifyListeners();
-
-    try {
-      final created = await _create{{feature_name.pascalCase()}}UseCase(item);
-      _items.add(created);
-    } catch (e) {
-      _error = e.toString();
-    } finally {
-      _isLoading = false;
-      notifyListeners();
-    }
-  }
-
-  Future<void> update{{feature_name.pascalCase()}}({{feature_name.pascalCase()}} item) async {
-    _isLoading = true;
-    _error = null;
-    notifyListeners();
-
-    try {
-      final updated = await _update{{feature_name.pascalCase()}}UseCase(item);
-      final index = _items.indexWhere((element) => element.id == item.id);
-      if (index != -1) {
-        _items[index] = updated;
-      }
-    } catch (e) {
-      _error = e.toString();
-    } finally {
-      _isLoading = false;
-      notifyListeners();
-    }
-  }
-
-  Future<void> delete{{feature_name.pascalCase()}}(int id) async {
-    _isLoading = true;
-    _error = null;
-    notifyListeners();
-
-    try {
-      final deleted = await _delete{{feature_name.pascalCase()}}UseCase(id);
-      if (deleted) {
-        _items.removeWhere((element) => element.id == id);
-      }
-    } catch (e) {
-      _error = e.toString();
-    } finally {
-      _isLoading = false;
-      notifyListeners();
-    }
+  {{feature_name.pascalCase()}}State copyWith({
+    List<{{feature_name.pascalCase()}}>? items,
+    bool? isLoading,
+    String? error,
+  }) {
+    return {{feature_name.pascalCase()}}State(
+      items: items ?? this.items,
+      isLoading: isLoading ?? this.isLoading,
+      error: error,
+    );
   }
 }
+
+@injectable
+class {{feature_name.pascalCase()}}Notifier extends AsyncNotifier<{{feature_name.pascalCase()}}State> {
+  final Get{{feature_name.pascalCase()}}UseCase _getUseCase;
+  final Create{{feature_name.pascalCase()}}UseCase _createUseCase;
+  final Update{{feature_name.pascalCase()}}UseCase _updateUseCase;
+  final Delete{{feature_name.pascalCase()}}UseCase _deleteUseCase;
+
+  {{feature_name.pascalCase()}}Notifier(
+    this._getUseCase,
+    this._createUseCase,
+    this._updateUseCase,
+    this._deleteUseCase,
+  );
+
+  @override
+  FutureOr<{{feature_name.pascalCase()}}State> build() async {
+    return const {{feature_name.pascalCase()}}State();
+  }
+
+  Future<void> loadAll() async {
+    state = AsyncValue.data(
+      state.value!.copyWith(isLoading: true, error: null),
+    );
+
+    try {
+      final list = await _getUseCase();
+      state = AsyncValue.data(
+        state.value!.copyWith(items: list, isLoading: false),
+      );
+    } catch (e) {
+      state = AsyncValue.data(
+        state.value!.copyWith(isLoading: false, error: e.toString()),
+      );
+    }
+  }
+
+  Future<void> create({{feature_name.pascalCase()}} item) async {
+    state = AsyncValue.data(
+      state.value!.copyWith(isLoading: true, error: null),
+    );
+
+    try {
+      final created = await _createUseCase(item);
+      state = AsyncValue.data(
+        state.value!.copyWith(
+          items: [...state.value!.items, created], 
+          isLoading: false,
+        ),
+      );
+    } catch (e) {
+      state = AsyncValue.data(
+        state.value!.copyWith(isLoading: false, error: e.toString()),
+      );
+    }
+  }
+
+  Future<void> update({{feature_name.pascalCase()}} item) async {
+    state = AsyncValue.data(
+      state.value!.copyWith(isLoading: true, error: null),
+    );
+
+    try {
+      final updated = await _updateUseCase(item);
+      final idx = state.value!.items.indexWhere((e) => e.id == item.id);
+      if (idx != -1) {
+        final newList = [...state.value!.items]..[idx] = updated;
+        state = AsyncValue.data(
+          state.value!.copyWith(items: newList, isLoading: false),
+        );
+      }
+    } catch (e) {
+      state = AsyncValue.data(
+        state.value!.copyWith(isLoading: false, error: e.toString()),
+      );
+    }
+  }
+
+  Future<void> delete(int id) async {
+    state = AsyncValue.data(
+      state.value!.copyWith(isLoading: true, error: null),
+    );
+
+    try {
+      final success = await _deleteUseCase(id);
+      if (success) {
+        state = AsyncValue.data(
+          state.value!.copyWith(
+            items: state.value!.items.where((e) => e.id != id).toList(),
+            isLoading: false,
+          ),
+        );
+      }
+    } catch (e) {
+      state = AsyncValue.data(
+        state.value!.copyWith(isLoading: false, error: e.toString()),
+      );
+    }
+  }
+
+  void clearError() {
+    state = AsyncValue.data(state.value!.copyWith(error: null));
+  }
+}
+
+final {{feature_name.camelCase()}}Provider = AsyncNotifierProvider<{{feature_name.pascalCase()}}Notifier, {{feature_name.pascalCase()}}State>(() {
+  return getIt<{{feature_name.pascalCase()}}Notifier>();
+});

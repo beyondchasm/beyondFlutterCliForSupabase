@@ -2,7 +2,7 @@
 
 > A powerful CLI tool for creating Flutter projects with Clean Architecture pattern and Supabase backend integration
 
-[![Version](https://img.shields.io/badge/version-0.2.61-blue.svg)](https://pub.dev/packages/beyond_flutter_cli_for_supabase)
+[![Version](https://img.shields.io/badge/version-0.2.62-blue.svg)](https://pub.dev/packages/beyond_flutter_cli_for_supabase)
 [![Dart SDK](https://img.shields.io/badge/dart-%3E%3D3.8.1-blue.svg)](https://dart.dev)
 [![Flutter](https://img.shields.io/badge/flutter-%3E%3D3.8.1-blue.svg)](https://flutter.dev)
 
@@ -33,7 +33,7 @@ Beyond Flutter CLI는 Flutter 앱을 Clean Architecture 패턴과 Supabase 백�
 - 📱 **현업 수준 UI**: Material Design 3 기반 완성된 화면들
 - 🎯 **UseCase 패턴**: 비즈니스 로직의 명확한 분리
 - 🎨 **테마 시스템**: 다크/라이트 모드 지원
-- 📐 **상태 관리**: Provider/Riverpod 지원
+- 📐 **상태 관리**: Riverpod 기반 반응형 상태 관리
 - 🧭 **라우팅**: GoRouter 기반 선언적 라우팅
 - 🔧 **의존성 주입**: Injectable 어노테이션 기반 자동 DI 시스템
 
@@ -145,7 +145,7 @@ beyond feature settings     # 앱 설정 기능 (완전한 설정 시스템)
 # 생성되는 파일들:
 # - Domain Layer: Entity, Repository, UseCases
 # - Data Layer: Models, DataSources, RepositoryImpl
-# - Presentation Layer: Provider, Screens
+# - Presentation Layer: Riverpod Notifiers, Screens
 # - Injectable 어노테이션으로 자동 DI 등록
 ```
 
@@ -230,7 +230,7 @@ lib/
 
 **포함 내용:**
 - Clean Architecture 폴더 구조
-- 핵심 의존성 (Provider, GoRouter, GetIt, Supabase 등)
+- 핵심 의존성 (Riverpod, GoRouter, GetIt, Supabase 등)
 - 테마 시스템
 - 라우팅 설정
 - 의존성 주입 설정
@@ -311,7 +311,7 @@ lib/
 **생성되는 구조:**
 - Data Layer (Remote/Local DataSource, Models, Repository 구현)
 - Domain Layer (Entities, Repository 인터페이스, UseCases)
-- Presentation Layer (Provider, Screen)
+- Presentation Layer (Riverpod Notifier, Screen)
 
 ## ⚙️ 설정
 
@@ -399,7 +399,7 @@ class DependenciesInjection {
 class UserRepositoryImpl implements UserRepository { ... }
 
 @injectable
-class UserProvider extends ChangeNotifier { ... }
+class UserNotifier extends AsyncNotifier<UserState> { ... }
 
 @lazySingleton
 class GetUserUseCase { ... }
@@ -469,12 +469,12 @@ class GetUserUseCase {
   GetUserUseCase(this.repository);
 }
 
-// 4. Provider - Factory (매번 새 인스턴스)
+// 4. Riverpod Notifier - Factory (매번 새 인스턴스)
 @injectable
-class UserProvider extends ChangeNotifier {
+class UserNotifier extends AsyncNotifier<UserState> {
   final GetUserUseCase getUserUseCase;
   
-  UserProvider(this.getUserUseCase);
+  UserNotifier(this.getUserUseCase);
 }
 
 // 5. External Services - Module로 등록
@@ -566,6 +566,65 @@ beyond feature product
 #     └── screens/product_screen.dart
 ```
 
+## 🚀 최신 업데이트 (v0.2.62)
+
+### Riverpod 마이그레이션 완료
+- ✅ **전체 상태 관리 시스템 Riverpod 전환**: Provider 패턴에서 Riverpod으로 완전 마이그레이션
+- ✅ **AsyncNotifier 패턴 적용**: 비동기 상태 관리를 위한 최신 Riverpod 패턴 적용
+- ✅ **타입 안전성 향상**: AsyncValue를 통한 로딩/에러 상태 자동 처리
+- ✅ **반응형 UI**: ConsumerWidget/ConsumerStatefulWidget 기반 선언적 UI
+- ✅ **의존성 주입 개선**: Injectable + Riverpod 조합으로 더 강력한 DI 시스템
+
+### 업그레이드 장점
+```dart
+// 기존 Provider 패턴
+class UserProvider extends ChangeNotifier {
+  bool isLoading = false;
+  String? error;
+  UserProfile? userProfile;
+  
+  Future<void> loadUser() async {
+    isLoading = true;
+    notifyListeners();
+    try {
+      userProfile = await _useCase.call();
+      error = null;
+    } catch (e) {
+      error = e.toString();
+    }
+    isLoading = false;
+    notifyListeners();
+  }
+}
+
+// 새로운 Riverpod 패턴
+@injectable
+class UserNotifier extends AsyncNotifier<UserState> {
+  @override
+  FutureOr<UserState> build() async {
+    return const UserState();
+  }
+  
+  Future<void> loadUser() async {
+    state = AsyncValue.data(state.value!.copyWith(isLoading: true));
+    try {
+      final user = await _useCase.call();
+      state = AsyncValue.data(UserState(userProfile: user));
+    } catch (e) {
+      state = AsyncValue.error(e, StackTrace.current);
+    }
+  }
+}
+
+// UI에서 사용
+final userState = ref.watch(userProvider);
+userState.when(
+  data: (state) => UserProfileWidget(state.userProfile),
+  loading: () => CircularProgressIndicator(),
+  error: (error, stack) => ErrorWidget(error),
+);
+```
+
 ## 🎨 UI/UX 특징
 
 ### Material Design 3
@@ -575,17 +634,23 @@ beyond feature product
 
 ### 테마 시스템
 ```dart
-// 라이트/다크 테마 자동 전환
-class ThemeProvider extends ChangeNotifier {
-  ThemeMode _themeMode = ThemeMode.system;
+// 라이트/다크 테마 자동 전환 (Riverpod 기반)
+class ThemeNotifier extends AsyncNotifier<ThemeState> {
+  @override
+  FutureOr<ThemeState> build() async {
+    // SharedPreferences에서 테마 설정 로드
+    return const ThemeState();
+  }
   
-  void toggleTheme() {
-    _themeMode = _themeMode == ThemeMode.light 
-        ? ThemeMode.dark 
-        : ThemeMode.light;
-    notifyListeners();
+  Future<void> setThemeMode(AppThemeMode mode) async {
+    // 테마 변경 및 상태 업데이트
+    state = AsyncValue.data(ThemeState(themeMode: mode));
   }
 }
+
+final themeNotifierProvider = AsyncNotifierProvider<ThemeNotifier, ThemeState>(() {
+  return ThemeNotifier();
+});
 ```
 
 ### 반응형 디자인

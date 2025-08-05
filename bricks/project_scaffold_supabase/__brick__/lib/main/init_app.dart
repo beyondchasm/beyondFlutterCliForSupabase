@@ -71,13 +71,14 @@ class InitApp {
 class _AppMaterialApp extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final themeState = ref.watch(themeProvider);
+    final themeStateAsync = ref.watch(themeNotifierProvider);
 
-    return MaterialApp.router(
-      title: AppConfig.appName,
-      theme: AppTheme.lightTheme(),
-      darkTheme: AppTheme.darkTheme(),
-      themeMode: themeState.flutterThemeMode,
+    return themeStateAsync.when(
+      data: (themeState) => MaterialApp.router(
+        title: AppConfig.appName,
+        theme: AppTheme.lightTheme(),
+        darkTheme: AppTheme.darkTheme(),
+        themeMode: themeState.flutterThemeMode,
         routerConfig: AppRouter.router,
         debugShowCheckedModeBanner: AppConfig.isDebug,
 
@@ -109,6 +110,19 @@ class _AppMaterialApp extends ConsumerWidget {
             child: child ?? const SizedBox.shrink(),
           );
         },
-      );
+      ),
+      loading: () => MaterialApp(
+        home: Scaffold(
+          body: Center(child: CircularProgressIndicator()),
+        ),
+      ),
+      error: (error, stack) => MaterialApp(
+        home: Scaffold(
+          body: Center(
+            child: Text('Theme loading error: $error'),
+          ),
+        ),
+      ),
+    );
   }
 }
