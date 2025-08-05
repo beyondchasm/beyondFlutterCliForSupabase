@@ -6,4 +6,4 @@ targets:
         options:
           auto_register: true
         generate_for:
-          - lib/core/di/dependencies_injection.dart
+          - lib/core/di/injection.dart

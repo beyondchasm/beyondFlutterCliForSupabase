@@ -8,7 +8,7 @@ class {{feature_name.pascalCase()}}RemoteDataSourceImpl implements {{feature_nam
   final SupabaseClient _supabase;
   final String _tableName = '{{feature_name}}s';
 
-  {{feature_name.pascalCase()}}RemoteDataSourceImpl(@Named('supabaseClient') this._supabase);
+  {{feature_name.pascalCase()}}RemoteDataSourceImpl(this._supabase);
 
   @override
   Future<List<{{feature_name.pascalCase()}}RemoteModel>> getAll() async {

@@ -1,20 +1,22 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
+import 'package:injectable/injectable.dart';
 import '../../domain/entities/user_profile.dart';
 import '../../domain/use_cases/get_user_profile_usecase.dart';
 import '../../domain/use_cases/update_user_profile_usecase.dart';
 import '../../domain/use_cases/delete_user_profile_usecase.dart';
-import '../../../../core/di/service_locator.dart';
 
+@injectable
 class UserProvider extends ChangeNotifier {
   final GetUserProfileUseCase _getUserProfileUseCase;
   final UpdateUserProfileUseCase _updateUserProfileUseCase;
   final DeleteUserProfileUseCase _deleteUserProfileUseCase;
 
-  UserProvider()
-      : _getUserProfileUseCase = ServiceLocator.get<GetUserProfileUseCase>(),
-        _updateUserProfileUseCase = ServiceLocator.get<UpdateUserProfileUseCase>(),
-        _deleteUserProfileUseCase = ServiceLocator.get<DeleteUserProfileUseCase>();
+  UserProvider(
+    this._getUserProfileUseCase,
+    this._updateUserProfileUseCase,
+    this._deleteUserProfileUseCase,
+  );
 
   UserProfile? _userProfile;
   bool _isLoading = false;

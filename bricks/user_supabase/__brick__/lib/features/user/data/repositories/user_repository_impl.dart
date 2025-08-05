@@ -1,13 +1,14 @@
+import 'package:injectable/injectable.dart';
 import '../../domain/entities/user_profile.dart';
 import '../../domain/repositories/user_repository.dart';
 import '../remote/data_sources/supabase_user_remote_data_source.dart';
 import '../remote/models/supabase_user_profile_model.dart';
-import '../../../../core/di/service_locator.dart';
 
+@LazySingleton(as: UserRepository)
 class UserRepositoryImpl implements UserRepository {
   final SupabaseUserRemoteDataSource _remoteDataSource;
 
-  UserRepositoryImpl() : _remoteDataSource = ServiceLocator.get<SupabaseUserRemoteDataSource>();
+  UserRepositoryImpl(this._remoteDataSource);
 
   @override
   Future<UserProfile> getUserProfile(String userId) async {

@@ -1,14 +1,14 @@
+import 'package:injectable/injectable.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import '../models/supabase_user_profile_model.dart';
 import 'supabase_user_remote_data_source.dart';
 
+@LazySingleton(as: SupabaseUserRemoteDataSource)
 class SupabaseUserRemoteDataSourceImpl implements SupabaseUserRemoteDataSource {
   final SupabaseClient _supabase;
   final String _tableName = 'user_profiles';
 
-  SupabaseUserRemoteDataSourceImpl({
-    SupabaseClient? supabase,
-  }) : _supabase = supabase ?? Supabase.instance.client;
+  SupabaseUserRemoteDataSourceImpl(this._supabase);
 
   @override
   Future<SupabaseUserProfileModel> getUserProfile(String userId) async {

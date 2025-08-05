@@ -1,10 +1,11 @@
+import 'package:injectable/injectable.dart';
 import '../repositories/user_repository.dart';
-import '../../../../core/di/service_locator.dart';
 
+@lazySingleton
 class DeleteUserProfileUseCase {
   final UserRepository _repository;
 
-  DeleteUserProfileUseCase() : _repository = ServiceLocator.get<UserRepository>();
+  DeleteUserProfileUseCase(this._repository);
 
   Future<void> call(String userId) async {
     return await _repository.deleteUserProfile(userId);

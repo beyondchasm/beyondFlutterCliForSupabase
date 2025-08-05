@@ -1,11 +1,12 @@
+import 'package:injectable/injectable.dart';
 import '../entities/user_profile.dart';
 import '../repositories/user_repository.dart';
-import '../../../../core/di/service_locator.dart';
 
+@lazySingleton
 class UpdateUserProfileUseCase {
   final UserRepository _repository;
 
-  UpdateUserProfileUseCase() : _repository = ServiceLocator.get<UserRepository>();
+  UpdateUserProfileUseCase(this._repository);
 
   Future<UserProfile> call(UserProfile userProfile) async {
     return await _repository.updateUserProfile(userProfile);

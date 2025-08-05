@@ -7,7 +7,7 @@ import 'supabase_auth_remote_data_source.dart';
 class SupabaseAuthRemoteDataSourceImpl implements SupabaseAuthRemoteDataSource {
   final SupabaseClient _supabaseClient;
 
-  SupabaseAuthRemoteDataSourceImpl(@Named('supabaseClient') this._supabaseClient);
+  SupabaseAuthRemoteDataSourceImpl(this._supabaseClient);
 
   @override
   Future<SupabaseUserModel> signInWithEmailAndPassword(String email, String password) async {
