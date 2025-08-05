@@ -1,13 +1,13 @@
+import 'package:injectable/injectable.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import '../models/supabase_user_model.dart';
 import 'supabase_auth_remote_data_source.dart';
 
+@LazySingleton(as: SupabaseAuthRemoteDataSource)
 class SupabaseAuthRemoteDataSourceImpl implements SupabaseAuthRemoteDataSource {
   final SupabaseClient _supabaseClient;
 
-  SupabaseAuthRemoteDataSourceImpl({
-    SupabaseClient? supabaseClient,
-  }) : _supabaseClient = supabaseClient ?? Supabase.instance.client;
+  SupabaseAuthRemoteDataSourceImpl(@Named('supabaseClient') this._supabaseClient);
 
   @override
   Future<SupabaseUserModel> signInWithEmailAndPassword(String email, String password) async {

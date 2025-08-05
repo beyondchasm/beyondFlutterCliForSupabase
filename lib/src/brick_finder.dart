@@ -2,10 +2,10 @@ import 'dart:io';
 import 'package:path/path.dart' as path;
 
 /// Mason 브릭(템플릿) 파일의 경로를 찾는 유틸리티 함수
-/// 
+///
 /// CLI가 전역 설치(로 실행되는지 로컬에서 실행되는지에 관계없이
 /// 브릭 파일의 정확한 위치를 찾아주는 역할을 합니다.
-/// 
+///
 /// [brickName]: 찾을 브릭의 이름 (예: 'auth_supabase', 'feature_supabase')
 /// 반환값: 브릭 디렉토리의 절대 경로
 Future<String> findBrickPath(String brickName) async {
@@ -23,7 +23,7 @@ Future<String> findBrickPath(String brickName) async {
 }
 
 /// 전역 설치된 CLI에서 브릭 경로를 찾는 함수
-/// 
+///
 /// pub cache 디렉토리에서 git 리포지토리를 찾고,
 /// 그 안에서 beyond_flutter_cli_for_supabase 패키지를 찾아
 /// 해당 브릭의 경로를 반환합니다.
@@ -44,14 +44,18 @@ Future<String> _findGlobalBrickPath(String brickName) async {
   // git 디렉토리 내에서 beyond_flutter_cli_for_supabase를 포함한 디렉토리들을 찾습니다
   final beyondDirs = await gitDir
       .list()
-      .where((entity) =>
-          entity is Directory && entity.path.contains('beyond_flutter_cli_for_supabase'))
+      .where(
+        (entity) =>
+            entity is Directory &&
+            entity.path.contains('beyond_flutter_cli_for_supabase'),
+      )
       .cast<Directory>()
       .toList();
 
   if (beyondDirs.isEmpty) {
     throw Exception(
-        'beyond_flutter_cli_for_supabase git repository not found in pub-cache.');
+      'beyond_flutter_cli_for_supabase git repository not found in pub-cache.',
+    );
   }
 
   // 가장 최근 버전을 사용 (보통 리스트의 마지막 요소)
@@ -67,7 +71,7 @@ Future<String> _findGlobalBrickPath(String brickName) async {
 }
 
 /// 로컬 개발 환경에서 브릭 경로를 찾는 함수
-/// 
+///
 /// 소스 코드에서 직접 실행할 때나 컴파일된 스냅샷에서 실행할 때
 /// 프로젝트의 bricks 디렉토리에서 브릭을 찾습니다.
 String _findLocalBrickPath(String brickName, String scriptPath) {
@@ -97,14 +101,15 @@ String _findLocalBrickPath(String brickName, String scriptPath) {
 }
 
 /// 사용자의 .pub-cache 디렉토리를 찾는 함수
-/// 
+///
 /// 운영체제에 따라 다른 경로를 확인합니다:
 /// - Unix/Linux/macOS: ~/.pub-cache
 /// - Windows: %USERPROFILE%/AppData/Local/Pub/Cache
 Directory? _findPubCacheDir() {
   // 환경 복수에서 홈 디렉토리 경로를 가져옵니다
   // HOME (Unix/Linux/macOS), USERPROFILE (Windows) 순서로 확인
-  final homeDir = Platform.environment['HOME'] ??
+  final homeDir =
+      Platform.environment['HOME'] ??
       Platform.environment['USERPROFILE'] ??
       Directory.current.path; // 둘 다 없으면 현재 디렉토리 사용
 
@@ -125,4 +130,3 @@ Directory? _findPubCacheDir() {
   // 어떤 경로에서도 .pub-cache를 찾을 수 없으면 null 반환
   return null;
 }
-

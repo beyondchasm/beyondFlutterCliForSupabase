@@ -1,32 +1,26 @@
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:dio/dio.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
+import 'package:injectable/injectable.dart';
 import '../config/app_config.dart';
 import '../config/environment.dart';
 import '../services/error_handler_service.dart';
 import '../services/loading_service.dart';
 import '../services/secure_storage_service.dart';
 import 'service_locator.dart';
+import 'injection.config.dart';
 
+@InjectableInit()
 class DependenciesInjection {
   static Future<void> init() async {
     // Register Core Services
     await _registerCoreServices();
 
-    // Register Data Sources
-    _registerDataSources();
-
-    // Register Repositories
-    _registerRepositories();
-
-    // Register Use Cases
-    _registerUseCases();
-
-    // Register Providers/Controllers
-    _registerProviders();
-
     // Register External Services
     await _registerExternalServices();
+
+    // Configure Injectable
+    ServiceLocator.configure(Environment.prod);
 
     if (EnvironmentConfig.enableLogging) {
       print('🔧 Dependency Injection initialized');
@@ -47,7 +41,7 @@ class DependenciesInjection {
     // Core Services
     ServiceLocator.registerSingleton<LoadingService>(LoadingService.instance);
     // ErrorHandlerService는 static 메서드만 사용하므로 등록하지 않음
-    
+
     // Secure Storage Service
     // SecureStorageService는 static 메서드만 사용하므로 등록하지 않음
 
@@ -68,7 +62,7 @@ class DependenciesInjection {
         ),
       );
     }
-    
+
     // 에러 처리를 위한 Dio Interceptor 추가
     dio.interceptors.add(
       InterceptorsWrapper(
@@ -83,65 +77,18 @@ class DependenciesInjection {
     ServiceLocator.registerSingleton<Dio>(dio);
   }
 
-  static void _registerDataSources() {
-    // TODO: Register your data sources here
-    // Example:
-    // ServiceLocator.registerSingleton<UserLocalDataSource>(
-    //   UserLocalDataSourceImpl(ServiceLocator.get<HiveInterface>()),
-    // );
-    // ServiceLocator.registerSingleton<UserRemoteDataSource>(
-    //   UserRemoteDataSourceImpl(ServiceLocator.get<Dio>()),
-    // );
-  }
 
-  static void _registerRepositories() {
-    // TODO: Register your repositories here
-    // Example:
-    // ServiceLocator.registerLazySingleton<UserRepository>(
-    //   () => UserRepositoryImpl(
-    //     ServiceLocator.get<UserLocalDataSource>(),
-    //     ServiceLocator.get<UserRemoteDataSource>(),
-    //   ),
-    // );
-  }
+  @module
+  abstract class ExternalServicesModule {
+    @Named('supabaseClient')
+    @singleton
+    SupabaseClient get supabaseClient => Supabase.instance.client;
 
-  static void _registerUseCases() {
-    // TODO: Register your use cases here
-    // Example:
-    // ServiceLocator.registerLazySingleton<GetUserUseCase>(
-    //   () => GetUserUseCase(ServiceLocator.get<UserRepository>()),
-    // );
-    // ServiceLocator.registerLazySingleton<CreateUserUseCase>(
-    //   () => CreateUserUseCase(ServiceLocator.get<UserRepository>()),
-    // );
-  }
-
-  static void _registerProviders() {
-    // TODO: Register your providers/controllers here
-    // Example:
-    // ServiceLocator.registerFactory<UserProvider>(
-    //   () => UserProvider(
-    //     ServiceLocator.get<GetUserUseCase>(),
-    //     ServiceLocator.get<CreateUserUseCase>(),
-    //   ),
-    // );
+    @singleton
+    GoTrueClient get goTrueClient => Supabase.instance.client.auth;
   }
 
   static Future<void> _registerExternalServices() async {
-    // Supabase Configuration
-    // TODO: Replace with your Supabase URL and Anon Key
-    await Supabase.initialize(
-      url: 'YOUR_SUPABASE_URL',
-      anonKey: 'YOUR_SUPABASE_ANON_KEY',
-      debug: EnvironmentConfig.enableLogging,
-    );
-
-    // Register Supabase client
-    ServiceLocator.registerSingleton<SupabaseClient>(Supabase.instance.client);
-
-    // Register Supabase Auth
-    ServiceLocator.registerSingleton<GoTrueClient>(Supabase.instance.client.auth);
-
     if (EnvironmentConfig.enableLogging) {
       print('🔥 Supabase initialized');
     }

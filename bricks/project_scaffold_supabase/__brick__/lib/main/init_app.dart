@@ -103,7 +103,7 @@ class _AppMaterialAppState extends State<_AppMaterialApp> {
           debugShowCheckedModeBanner: AppConfig.isDebug,
           
           // 글로벌 키 설정
-          navigatorKey: InitApp.navigatorKey,
+          // navigatorKey: InitApp.navigatorKey,
           scaffoldMessengerKey: InitApp.scaffoldKey,
           
           // Localization (TODO: Configure if needed)

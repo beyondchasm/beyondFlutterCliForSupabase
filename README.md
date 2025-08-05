@@ -34,7 +34,7 @@ Beyond Flutter CLI는 Flutter 앱을 Clean Architecture 패턴과 Supabase 백�
 - 🎨 **테마 시스템**: 다크/라이트 모드 지원
 - 📐 **상태 관리**: Provider/Riverpod 지원
 - 🧭 **라우팅**: GoRouter 기반 선언적 라우팅
-- 🔧 **의존성 주입**: ServiceLocator 패턴과 GetIt 기반 DI 시스템
+- 🔧 **의존성 주입**: Injectable 어노테이션 기반 자동 DI 시스템
 
 ## 📦 설치
 
@@ -95,7 +95,7 @@ static const String supabaseAnonKey = 'your-anon-key';
 
 ```bash
 flutter pub get
-dart run build_runner build
+dart run build_runner build  # Injectable DI 및 코드 생성
 flutter run
 ```
 
@@ -127,7 +127,7 @@ beyond scaffold [--org ORG] [--with-auth] [--with-user] [--with-onboarding]
 - `--with-onboarding`: 온보딩 화면 포함 (앱 소개 슬라이드)
 
 #### `beyond feature`
-새로운 기능 모듈을 생성합니다. **자동으로 의존성 주입(DI)에 등록됩니다.**
+새로운 기능 모듈을 생성합니다. **Injectable 어노테이션으로 자동 DI 등록됩니다.**
 
 ```bash
 beyond feature <feature_name>
@@ -143,13 +143,14 @@ beyond feature notification # 알림 기능
 # - Domain Layer: Entity, Repository, UseCases
 # - Data Layer: Models, DataSources, RepositoryImpl
 # - Presentation Layer: Provider, Screens
-# - 자동 DI 등록 (GetIt)
+# - Injectable 어노테이션으로 자동 DI 등록
 ```
 
-**🔧 자동 DI 등록 기능:**
-- Mason Hook을 통해 feature 생성 시 `dependencies_injection.dart` 자동 업데이트
-- Import 구문, DataSource, Repository, UseCase, Provider 등록 코드 자동 생성
-- 수동 등록 작업 불필요
+**🔧 Injectable 기반 DI 시스템:**
+- `@LazySingleton`, `@injectable` 어노테이션 사용
+- `dart run build_runner build`로 DI 코드 자동 생성
+- 수동 등록 작업 완전 불필요
+- 컴파일 타임 의존성 검증
 
 ### 설정 파일 (`beyond_cli.yaml`)
 
@@ -180,8 +181,9 @@ lib/
 │   │   ├── environment.dart
 │   │   └── supabase_config.dart
 │   ├── di/                 # 의존성 주입
-│   │   ├── dependencies_injection.dart  # DI 초기화 및 등록
-│   │   └── service_locator.dart         # GetIt 래퍼 클래스
+│   │   ├── dependencies_injection.dart  # Injectable DI 초기화
+│   │   ├── service_locator.dart         # GetIt 래퍼 클래스
+│   │   └── injection.config.dart        # 자동 생성 DI 코드
 │   ├── routes/             # 라우팅
 │   │   ├── app_router.dart
 │   │   └── route_names.dart
@@ -321,50 +323,57 @@ CREATE POLICY "Users can update own profile." ON profiles
   FOR UPDATE USING (auth.uid() = id);
 ```
 
-### 의존성 주입 (DI) 구조
+### Injectable 기반 의존성 주입 (DI) 구조
 
-프로젝트는 **ServiceLocator 패턴**과 **GetIt**을 사용한 의존성 주입 시스템을 구현합니다:
+프로젝트는 **Injectable 어노테이션**과 **GetIt**을 사용한 자동 의존성 주입 시스템을 구현합니다:
 
 ```dart
 // lib/core/di/service_locator.dart - GetIt 래퍼 클래스
 class ServiceLocator {
-  static T get<T extends Object>() => GetIt.instance.get<T>();
-  static void registerSingleton<T extends Object>(T instance) => 
-      GetIt.instance.registerSingleton<T>(instance);
-  static void registerLazySingleton<T extends Object>(T Function() factory) => 
-      GetIt.instance.registerLazySingleton<T>(factory);
+  static final GetIt _getIt = GetIt.instance;
+  
+  @injectableInit
+  static GetIt configure(String environment) => _getIt.init(
+    environmentFilter: NoEnvOrContainsAll({environment}),
+  );
+  
+  static T get<T extends Object>() => _getIt.get<T>();
   // ... 추가 메서드들
 }
 
-// lib/core/di/dependencies_injection.dart - DI 초기화
+// lib/core/di/dependencies_injection.dart - Injectable DI 초기화
+@InjectableInit()
 class DependenciesInjection {
   static Future<void> init() async {
     // 1. Core Services (SharedPreferences, Dio, etc.)
     await _registerCoreServices();
     
-    // 2. Data Sources (Mason Hook으로 자동 등록)
-    _registerDataSources();
-    
-    // 3. Repositories (Mason Hook으로 자동 등록)
-    _registerRepositories();
-    
-    // 4. Use Cases (Mason Hook으로 자동 등록)
-    _registerUseCases();
-    
-    // 5. Providers (Mason Hook으로 자동 등록)
-    _registerProviders();
-    
-    // 6. External Services (Supabase 클라이언트 등록)
+    // 2. External Services (Supabase 클라이언트 등록)
     await _registerExternalServices();
+    
+    // 3. Injectable 자동 등록
+    ServiceLocator.configure(Environment.prod);
   }
 }
+
+// 클래스별 어노테이션 예시
+@LazySingleton(as: UserRepository)
+class UserRepositoryImpl implements UserRepository { ... }
+
+@injectable
+class UserProvider extends ChangeNotifier { ... }
+
+@lazySingleton
+class GetUserUseCase { ... }
 ```
 
-**🔧 ServiceLocator 패턴의 장점:**
-- GetIt 인스턴스의 직접 노출 방지
-- 일관된 API 제공
-- 에러 처리 및 로깅 추가 가능
-- 테스트 시 Mock 객체 주입 용이
+**🚀 Injectable 시스템의 장점:**
+- **컴파일 타임 검증**: 의존성 누락 시 빌드 에러
+- **자동 코드 생성**: `dart run build_runner build`로 DI 코드 자동 생성
+- **어노테이션 기반**: 클래스 선언 시점에 DI 등록 정보 명시
+- **타입 안전성**: 컴파일 타임에 의존성 그래프 검증
+- **개발자 경험**: 수동 등록 코드 작성 불필요
+- **build.yaml 설정**: Injectable 코드 생성 자동 설정 포함
 
 ### 앱 초기화 순서
 
@@ -380,7 +389,7 @@ class InitApp {
     // 2. Supabase 초기화 (DI보다 먼저)
     await SupabaseConfig.initialize();
     
-    // 3. 의존성 주입 초기화
+    // 3. Injectable 기반 의존성 주입 초기화
     await DependenciesInjection.init();
     
     // 4. 추가 초기화 로직
@@ -390,7 +399,62 @@ class InitApp {
 
 **🔄 초기화 순서가 중요한 이유:**
 - Supabase는 DI 등록 전에 초기화되어야 함
-- Supabase 클라이언트를 DI 컨테이너에 등록하기 위해
+- Injectable이 Supabase 클라이언트를 DI 컨테이너에 자동 등록
+- `injection.config.dart` 파일이 자동 생성되어 모든 의존성 관리
+
+### Injectable 어노테이션 가이드
+
+생성되는 코드에서 사용되는 Injectable 어노테이션들과 그 역할:
+
+```dart
+// 1. DataSource 구현체 - 인터페이스로 등록되는 Lazy Singleton
+@LazySingleton(as: UserRemoteDataSource)
+class UserRemoteDataSourceImpl implements UserRemoteDataSource {
+  final SupabaseClient supabaseClient;
+  
+  UserRemoteDataSourceImpl(@Named('supabaseClient') this.supabaseClient);
+}
+
+// 2. Repository 구현체 - 인터페이스로 등록되는 Lazy Singleton
+@LazySingleton(as: UserRepository)
+class UserRepositoryImpl implements UserRepository {
+  final UserRemoteDataSource remoteDataSource;
+  
+  UserRepositoryImpl(this.remoteDataSource);
+}
+
+// 3. UseCase - Lazy Singleton
+@lazySingleton
+class GetUserUseCase {
+  final UserRepository repository;
+  
+  GetUserUseCase(this.repository);
+}
+
+// 4. Provider - Factory (매번 새 인스턴스)
+@injectable
+class UserProvider extends ChangeNotifier {
+  final GetUserUseCase getUserUseCase;
+  
+  UserProvider(this.getUserUseCase);
+}
+
+// 5. External Services - Module로 등록
+@module
+abstract class ExternalServicesModule {
+  @Named('supabaseClient')
+  @singleton
+  SupabaseClient get supabaseClient => Supabase.instance.client;
+}
+```
+
+**어노테이션별 설명:**
+- `@LazySingleton(as: Interface)`: 인터페이스로 등록되는 지연 초기화 싱글톤
+- `@lazySingleton`: 지연 초기화 싱글톤 (첫 요청 시 생성)
+- `@injectable`: Factory 등록 (매번 새 인스턴스 생성)
+- `@singleton`: 즉시 초기화 싱글톤
+- `@Named('name')`: 같은 타입의 여러 구현체 구분
+- `@module`: 외부 라이브러리나 복잡한 초기화가 필요한 객체 등록
 
 ### 환경 변수 설정
 
@@ -431,9 +495,9 @@ beyond feature product
 beyond feature cart
 beyond feature order
 
-# 5. 의존성 설치 및 코드 생성
+# 5. 의존성 설치 및 Injectable DI 코드 생성
 flutter pub get
-dart run build_runner build
+dart run build_runner build  # injection.config.dart 자동 생성
 
 # 6. 앱 실행
 flutter run
@@ -495,11 +559,16 @@ class ThemeProvider extends ChangeNotifier {
 
 ### 코드 생성
 ```bash
-# Freezed 모델 생성
+# Injectable DI 및 Freezed 모델 생성
 dart run build_runner build
 
-# 지속적 감시 모드
+# 지속적 감시 모드 (개발 중 권장)
 dart run build_runner watch
+
+# 생성되는 파일들:
+# - lib/core/di/injection.config.dart (Injectable DI 코드)
+# - *.freezed.dart (Freezed 모델 코드)
+# - *.g.dart (JSON 직렬화 코드)
 ```
 
 ### 린팅

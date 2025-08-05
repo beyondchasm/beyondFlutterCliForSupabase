@@ -1,14 +1,14 @@
+import 'package:injectable/injectable.dart';
 import '../../domain/entities/auth_result.dart';
 import '../../domain/entities/user_entity.dart';
 import '../../domain/repositories/auth_repository.dart';
 import '../remote/data_sources/supabase_auth_remote_data_source.dart';
-import '../../../../core/di/service_locator.dart';
 
+@LazySingleton(as: AuthRepository)
 class AuthRepositoryImpl implements AuthRepository {
   final SupabaseAuthRemoteDataSource _remoteDataSource;
 
-  AuthRepositoryImpl()
-    : _remoteDataSource = ServiceLocator.get<SupabaseAuthRemoteDataSource>();
+  AuthRepositoryImpl(this._remoteDataSource);
 
   @override
   Future<AuthResult> signInWithEmailAndPassword(

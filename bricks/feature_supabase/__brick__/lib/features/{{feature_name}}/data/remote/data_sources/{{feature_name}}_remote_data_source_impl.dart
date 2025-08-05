@@ -1,14 +1,14 @@
+import 'package:injectable/injectable.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import '{{feature_name}}_remote_data_source.dart';
 import '../models/{{feature_name}}_remote_model.dart';
 
+@LazySingleton(as: {{feature_name.pascalCase()}}RemoteDataSource)
 class {{feature_name.pascalCase()}}RemoteDataSourceImpl implements {{feature_name.pascalCase()}}RemoteDataSource {
   final SupabaseClient _supabase;
   final String _tableName = '{{feature_name}}s';
 
-  {{feature_name.pascalCase()}}RemoteDataSourceImpl({
-    SupabaseClient? supabase,
-  }) : _supabase = supabase ?? Supabase.instance.client;
+  {{feature_name.pascalCase()}}RemoteDataSourceImpl(@Named('supabaseClient') this._supabase);
 
   @override
   Future<List<{{feature_name.pascalCase()}}RemoteModel>> getAll() async {

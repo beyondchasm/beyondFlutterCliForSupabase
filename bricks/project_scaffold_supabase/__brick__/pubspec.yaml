@@ -21,6 +21,7 @@ dependencies:
   
   # 의존성 주입 (Dependency Injection)
   get_it: ^7.7.0                # 서비스 로케이터 패턴
+  injectable: ^2.4.4            # 어노테이션 기반 DI
   
   # 코드 생성 (Code Generation) - 런타임에 필요한 어노테이션
   freezed_annotation: ^2.4.4    # Freezed 모델 생성을 위한 어노테이션
@@ -78,11 +79,12 @@ dev_dependencies:
   freezed: ^2.5.7               # 불변 클래스 및 union 타입 생성
   json_serializable: ^6.8.0     # JSON 직렬화 코드 생성
   hive_generator: ^2.0.1        # Hive 코드 생성
+  injectable_generator: ^2.6.2  # Injectable DI 코드 생성
   
   # 테스팅 (Testing)
   mockito: ^5.4.4               # 목(Mock) 객체 생성
   bloc_test: ^9.1.5             # BLoC 테스팅 유틸리티 (BLoC 사용 시)
-  integration_test:             # 통합 테스트
+  integration_test: # 통합 테스트
     sdk: flutter
   
   # 테스트 커버리지 (Test Coverage) - 패키지 문제로 주석 처리
@@ -99,9 +101,9 @@ flutter:
     - assets/icons/               # 아이콘 파일들
     - assets/logos/               # 로고 파일들
     # 온보딩 이미지 (onboarding 기능 사용 시 필요)
-    - assets/images/onboarding_welcome.png
-    - assets/images/onboarding_features.png
-    - assets/images/onboarding_start.png
+  #    - assets/images/onboarding_welcome.png
+  #    - assets/images/onboarding_features.png
+  #    - assets/images/onboarding_start.png
   
   # 폰트 설정 (Fonts Configuration)
   # 커스텀 폰트를 사용하려면 아래 주석을 해제하고 설정하세요

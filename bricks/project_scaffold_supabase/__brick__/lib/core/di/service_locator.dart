@@ -1,7 +1,14 @@
 import 'package:get_it/get_it.dart';
+import 'package:injectable/injectable.dart';
 
 class ServiceLocator {
   static final GetIt _getIt = GetIt.instance;
+
+  /// Injectable을 사용하여 자동으로 등록된 의존성들을 구성합니다.
+  @injectableInit
+  static GetIt configure(String environment) => _getIt.init(
+        environmentFilter: NoEnvOrContainsAll({environment}),
+      );
 
   // Generic get method
   static T get<T extends Object>() {

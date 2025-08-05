@@ -1,4 +1,5 @@
 import 'package:flutter/foundation.dart';
+import 'package:injectable/injectable.dart';
 import '../../domain/entities/user_entity.dart';
 import '../../domain/entities/auth_result.dart';
 import '../../domain/use_cases/sign_in_usecase.dart';
@@ -6,8 +7,8 @@ import '../../domain/use_cases/sign_up_usecase.dart';
 import '../../domain/use_cases/sign_out_usecase.dart';
 import '../../domain/use_cases/reset_password_usecase.dart';
 import '../../domain/use_cases/get_current_user_usecase.dart';
-import '../../../../core/di/service_locator.dart';
 
+@injectable
 class AuthProvider extends ChangeNotifier {
   final SignInUseCase _signInUseCase;
   final SignUpUseCase _signUpUseCase;
@@ -15,12 +16,13 @@ class AuthProvider extends ChangeNotifier {
   final ResetPasswordUseCase _resetPasswordUseCase;
   final GetCurrentUserUseCase _getCurrentUserUseCase;
 
-  AuthProvider()
-      : _signInUseCase = ServiceLocator.get<SignInUseCase>(),
-        _signUpUseCase = ServiceLocator.get<SignUpUseCase>(),
-        _signOutUseCase = ServiceLocator.get<SignOutUseCase>(),
-        _resetPasswordUseCase = ServiceLocator.get<ResetPasswordUseCase>(),
-        _getCurrentUserUseCase = ServiceLocator.get<GetCurrentUserUseCase>() {
+  AuthProvider(
+    this._signInUseCase,
+    this._signUpUseCase,
+    this._signOutUseCase,
+    this._resetPasswordUseCase,
+    this._getCurrentUserUseCase,
+  ) {
     _initializeAuthState();
   }
 

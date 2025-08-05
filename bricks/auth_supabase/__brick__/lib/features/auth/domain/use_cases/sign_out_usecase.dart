@@ -1,10 +1,11 @@
+import 'package:injectable/injectable.dart';
 import '../repositories/auth_repository.dart';
-import '../../../../core/di/service_locator.dart';
 
+@lazySingleton
 class SignOutUseCase {
   final AuthRepository _authRepository;
 
-  SignOutUseCase() : _authRepository = ServiceLocator.get<AuthRepository>();
+  SignOutUseCase(this._authRepository);
 
   Future<void> call() async {
     return await _authRepository.signOut();
