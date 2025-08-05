@@ -89,8 +89,6 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen> {
               ),
             ),
           );
-      ),
-    );
   }
 
   Widget _buildProfileImageSection() {

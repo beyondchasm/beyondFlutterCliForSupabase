@@ -409,13 +409,13 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
 
     switch (action) {
       case 'export':
-        await _exportSettings(notifier);
+        await _exportSettings(ref);
         break;
       case 'import':
-        await _importSettings(notifier);
+        await _importSettings(ref);
         break;
       case 'reset':
-        await _showResetConfirmation(notifier);
+        await _showResetConfirmation(ref);
         break;
     }
   }
