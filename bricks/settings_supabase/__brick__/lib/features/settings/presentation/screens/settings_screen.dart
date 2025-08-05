@@ -123,15 +123,15 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
               padding: const EdgeInsets.all(16),
               child: Column(
                 children: [
-                  _buildAppearanceSection(state),
+                  _buildAppearanceSection(state, ref),
                   const SizedBox(height: 16),
-                  _buildNotificationsSection(state),
+                  _buildNotificationsSection(state, ref),
                   const SizedBox(height: 16),
-                  _buildPrivacySecuritySection(state),
+                  _buildPrivacySecuritySection(state, ref),
                   const SizedBox(height: 16),
-                  _buildDataStorageSection(state),
+                  _buildDataStorageSection(state, ref),
                   const SizedBox(height: 16),
-                  _buildAccessibilitySection(state),
+                  _buildAccessibilitySection(state, ref),
                   const SizedBox(height: 16),
                   _buildAboutSection(state),
                   const SizedBox(height: 32),
@@ -176,7 +176,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
     );
   }
 
-  Widget _buildAppearanceSection(SettingsState state) {
+  Widget _buildAppearanceSection(SettingsState state, WidgetRef ref) {
     final settings = state.settings!;
 
     return SettingsSection(
@@ -187,26 +187,26 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
           title: 'Theme',
           subtitle: _getThemeModeText(settings.themeMode),
           leading: const Icon(Icons.brightness_6_outlined),
-          onTap: () => _showThemeSelector(context, provider),
+          onTap: () => _showThemeSelector(context, ref),
         ),
         SettingsTile(
           title: 'Language',
           subtitle: _getLanguageText(settings.language),
           leading: const Icon(Icons.language_outlined),
-          onTap: () => _showLanguageSelector(context, provider),
+          onTap: () => _showLanguageSelector(context, ref),
         ),
         SettingsTile.switchTile(
           title: 'Material You Colors',
           subtitle: 'Use dynamic colors from wallpaper',
           leading: const Icon(Icons.auto_awesome_outlined),
           value: settings.useMaterialYou,
-          onChanged: (value) => provider.updateSetting('useMaterialYou', value),
+          onChanged: (value) => ref.read(settingsProvider.notifier).updateSetting('useMaterialYou', value),
         ),
       ],
     );
   }
 
-  Widget _buildNotificationsSection(SettingsState state) {
+  Widget _buildNotificationsSection(SettingsState state, WidgetRef ref) {
     final settings = state.settings!;
 
     return SettingsSection(
@@ -219,7 +219,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
           leading: const Icon(Icons.notifications_active_outlined),
           value: settings.pushNotificationsEnabled,
           onChanged: (value) =>
-              provider.updateSetting('pushNotificationsEnabled', value),
+              ref.read(settingsProvider.notifier).updateSetting('pushNotificationsEnabled', value),
         ),
         SettingsTile.switchTile(
           title: 'Email Notifications',
@@ -227,7 +227,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
           leading: const Icon(Icons.email_outlined),
           value: settings.emailNotificationsEnabled,
           onChanged: (value) =>
-              provider.updateSetting('emailNotificationsEnabled', value),
+              ref.read(settingsProvider.notifier).updateSetting('emailNotificationsEnabled', value),
         ),
         SettingsTile.switchTile(
           title: 'In-App Notifications',
@@ -235,14 +235,14 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
           leading: const Icon(Icons.app_blocking_outlined),
           value: settings.inAppNotificationsEnabled,
           onChanged: (value) =>
-              provider.updateSetting('inAppNotificationsEnabled', value),
+              ref.read(settingsProvider.notifier).updateSetting('inAppNotificationsEnabled', value),
         ),
         SettingsTile.switchTile(
           title: 'Sound',
           subtitle: 'Play sound for notifications',
           leading: const Icon(Icons.volume_up_outlined),
           value: settings.soundEnabled,
-          onChanged: (value) => provider.updateSetting('soundEnabled', value),
+          onChanged: (value) => ref.read(settingsProvider.notifier).updateSetting('soundEnabled', value),
         ),
         SettingsTile.switchTile(
           title: 'Vibration',
@@ -250,13 +250,13 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
           leading: const Icon(Icons.vibration_outlined),
           value: settings.vibrationEnabled,
           onChanged: (value) =>
-              provider.updateSetting('vibrationEnabled', value),
+              ref.read(settingsProvider.notifier).updateSetting('vibrationEnabled', value),
         ),
       ],
     );
   }
 
-  Widget _buildPrivacySecuritySection(SettingsState state) {
+  Widget _buildPrivacySecuritySection(SettingsState state, WidgetRef ref) {
     final settings = state.settings!;
 
     return SettingsSection(
@@ -268,13 +268,13 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
           subtitle: 'Use fingerprint or face unlock',
           leading: const Icon(Icons.fingerprint_outlined),
           value: settings.biometricAuthEnabled,
-          onChanged: (value) => provider.toggleBiometricAuth(value),
+          onChanged: (value) => ref.read(settingsProvider.notifier).toggleBiometricAuth(value),
         ),
         SettingsTile(
           title: 'Auto Lock',
           subtitle: settings.autoLockDuration.displayName,
           leading: const Icon(Icons.lock_clock_outlined),
-          onTap: () => _showAutoLockSelector(context, provider),
+          onTap: () => _showAutoLockSelector(context, ref),
         ),
         SettingsTile.switchTile(
           title: 'Require Auth for Sensitive Actions',
@@ -282,14 +282,14 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
           leading: const Icon(Icons.security_outlined),
           value: settings.requireAuthForSensitiveActions,
           onChanged: (value) =>
-              provider.updateSetting('requireAuthForSensitiveActions', value),
+              ref.read(settingsProvider.notifier).updateSetting('requireAuthForSensitiveActions', value),
         ),
         SettingsTile.switchTile(
           title: 'Analytics',
           subtitle: 'Help improve the app by sharing usage data',
           leading: const Icon(Icons.analytics_outlined),
           value: settings.analyticsEnabled,
-          onChanged: (value) => provider.toggleAnalytics(value),
+          onChanged: (value) => ref.read(settingsProvider.notifier).toggleAnalytics(value),
         ),
         SettingsTile.switchTile(
           title: 'Crash Reporting',
@@ -297,13 +297,13 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
           leading: const Icon(Icons.bug_report_outlined),
           value: settings.crashReportingEnabled,
           onChanged: (value) =>
-              provider.updateSetting('crashReportingEnabled', value),
+              ref.read(settingsProvider.notifier).updateSetting('crashReportingEnabled', value),
         ),
       ],
     );
   }
 
-  Widget _buildDataStorageSection(SettingsState state) {
+  Widget _buildDataStorageSection(SettingsState state, WidgetRef ref) {
     final settings = state.settings!;
 
     return SettingsSection(
@@ -316,32 +316,32 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
           leading: const Icon(Icons.backup_outlined),
           value: settings.autoBackupEnabled,
           onChanged: (value) =>
-              provider.updateSetting('autoBackupEnabled', value),
+              ref.read(settingsProvider.notifier).updateSetting('autoBackupEnabled', value),
         ),
         SettingsTile(
           title: 'Sync Frequency',
           subtitle: settings.dataSyncFrequency.displayName,
           leading: const Icon(Icons.sync_outlined),
-          onTap: () => _showSyncFrequencySelector(context, provider),
+          onTap: () => _showSyncFrequencySelector(context, ref),
         ),
         SettingsTile.switchTile(
           title: 'WiFi Only Sync',
           subtitle: 'Only sync when connected to WiFi',
           leading: const Icon(Icons.wifi_outlined),
           value: settings.wifiOnlySync,
-          onChanged: (value) => provider.updateSetting('wifiOnlySync', value),
+          onChanged: (value) => ref.read(settingsProvider.notifier).updateSetting('wifiOnlySync', value),
         ),
         SettingsTile(
           title: 'Cache Size',
           subtitle: settings.cacheSize.displayName,
           leading: const Icon(Icons.folder_outlined),
-          onTap: () => _showCacheSizeSelector(context, provider),
+          onTap: () => _showCacheSizeSelector(context, ref),
         ),
       ],
     );
   }
 
-  Widget _buildAccessibilitySection(SettingsState state) {
+  Widget _buildAccessibilitySection(SettingsState state, WidgetRef ref) {
     final settings = state.settings!;
 
     return SettingsSection(
@@ -352,7 +352,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
           title: 'Text Size',
           subtitle: '${(settings.textScale * 100).round()}%',
           leading: const Icon(Icons.text_fields_outlined),
-          onTap: () => _showTextScaleSelector(context, provider),
+          onTap: () => _showTextScaleSelector(context, ref),
         ),
         SettingsTile.switchTile(
           title: 'High Contrast',
@@ -360,7 +360,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
           leading: const Icon(Icons.contrast_outlined),
           value: settings.highContrastEnabled,
           onChanged: (value) =>
-              provider.updateSetting('highContrastEnabled', value),
+              ref.read(settingsProvider.notifier).updateSetting('highContrastEnabled', value),
         ),
         SettingsTile.switchTile(
           title: 'Reduce Animations',
@@ -368,7 +368,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
           leading: const Icon(Icons.motion_photos_off_outlined),
           value: settings.reduceAnimationsEnabled,
           onChanged: (value) =>
-              provider.updateSetting('reduceAnimationsEnabled', value),
+              ref.read(settingsProvider.notifier).updateSetting('reduceAnimationsEnabled', value),
         ),
       ],
     );
@@ -420,39 +420,39 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
     }
   }
 
-  void _showThemeSelector(BuildContext context, SettingsProvider provider) {
+  void _showThemeSelector(BuildContext context, WidgetRef ref) {
     showModalBottomSheet(
       context: context,
       builder: (context) => ThemeSelector(
-        currentTheme: state.settings!.themeMode,
+        currentTheme: ref.read(settingsProvider).value!.settings!.themeMode,
         onThemeChanged: (theme) {
-          provider.updateThemeMode(theme);
+          ref.read(settingsProvider.notifier).updateThemeMode(theme);
           Navigator.pop(context);
         },
       ),
     );
   }
 
-  void _showLanguageSelector(BuildContext context, SettingsProvider provider) {
+  void _showLanguageSelector(BuildContext context, WidgetRef ref) {
     showModalBottomSheet(
       context: context,
       builder: (context) => LanguageSelector(
-        currentLanguage: state.settings!.language,
+        currentLanguage: ref.read(settingsProvider).value!.settings!.language,
         onLanguageChanged: (language) {
-          provider.updateLanguage(language);
+          ref.read(settingsProvider.notifier).updateLanguage(language);
           Navigator.pop(context);
         },
       ),
     );
   }
 
-  void _showAutoLockSelector(BuildContext context, SettingsProvider provider) {
+  void _showAutoLockSelector(BuildContext context, WidgetRef ref) {
     showModalBottomSheet(
       context: context,
       builder: (context) => AutoLockSelector(
-        currentDuration: state.settings!.autoLockDuration,
+        currentDuration: ref.read(settingsProvider).value!.settings!.autoLockDuration,
         onDurationChanged: (duration) {
-          provider.updateAutoLockDuration(duration);
+          ref.read(settingsProvider.notifier).updateAutoLockDuration(duration);
           Navigator.pop(context);
         },
       ),
@@ -461,7 +461,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
 
   void _showSyncFrequencySelector(
     BuildContext context,
-    SettingsProvider provider,
+    WidgetRef ref,
   ) {
     showDialog(
       context: context,
@@ -473,10 +473,10 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
             return RadioListTile<DataSyncFrequency>(
               title: Text(frequency.displayName),
               value: frequency,
-              groupValue: state.settings!.dataSyncFrequency,
+              groupValue: ref.read(settingsProvider).value!.settings!.dataSyncFrequency,
               onChanged: (value) {
                 if (value != null) {
-                  provider.updateSetting('dataSyncFrequency', value.name);
+                  ref.read(settingsProvider.notifier).updateSetting('dataSyncFrequency', value.name);
                   Navigator.pop(context);
                 }
               },
@@ -487,7 +487,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
     );
   }
 
-  void _showCacheSizeSelector(BuildContext context, SettingsProvider provider) {
+  void _showCacheSizeSelector(BuildContext context, WidgetRef ref) {
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
@@ -498,10 +498,10 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
             return RadioListTile<CacheSize>(
               title: Text(size.displayName),
               value: size,
-              groupValue: state.settings!.cacheSize,
+              groupValue: ref.read(settingsProvider).value!.settings!.cacheSize,
               onChanged: (value) {
                 if (value != null) {
-                  provider.updateSetting('cacheSize', value.name);
+                  ref.read(settingsProvider.notifier).updateSetting('cacheSize', value.name);
                   Navigator.pop(context);
                 }
               },
@@ -512,7 +512,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
     );
   }
 
-  void _showTextScaleSelector(BuildContext context, SettingsProvider provider) {
+  void _showTextScaleSelector(BuildContext context, WidgetRef ref) {
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
@@ -523,13 +523,13 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
             const Text('Preview Text'),
             const SizedBox(height: 16),
             Slider(
-              value: state.settings!.textScale,
+              value: ref.read(settingsProvider).value!.settings!.textScale,
               min: 0.5,
               max: 3.0,
               divisions: 10,
-              label: '${(state.settings!.textScale * 100).round()}%',
+              label: '${(ref.read(settingsProvider).value!.settings!.textScale * 100).round()}%',
               onChanged: (value) {
-                provider.updateTextScale(value);
+                ref.read(settingsProvider.notifier).updateTextScale(value);
               },
             ),
           ],
@@ -544,8 +544,8 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
     );
   }
 
-  Future<void> _exportSettings(SettingsProvider provider) async {
-    final settings = await provider.exportSettings();
+  Future<void> _exportSettings(WidgetRef ref) async {
+    final settings = await ref.read(settingsProvider.notifier).exportSettings();
     if (settings != null && mounted) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
@@ -556,14 +556,14 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
     }
   }
 
-  Future<void> _importSettings(SettingsProvider provider) async {
+  Future<void> _importSettings(WidgetRef ref) async {
     // TODO: Implement file picker and import logic
     ScaffoldMessenger.of(
       context,
     ).showSnackBar(const SnackBar(content: Text('Import feature coming soon')));
   }
 
-  Future<void> _showResetConfirmation(SettingsProvider provider) async {
+  Future<void> _showResetConfirmation(WidgetRef ref) async {
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
@@ -588,7 +588,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
     );
 
     if (confirmed == true) {
-      await provider.resetToDefaults();
+      await ref.read(settingsProvider.notifier).resetToDefaults();
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(

@@ -73,9 +73,7 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen> {
             ),
         ],
       ),
-      body: Consumer<UserProvider>(
-        builder: (context, provider, child) {
-          return Form(
+      body: Form(
             key: _formKey,
             child: SingleChildScrollView(
               padding: const EdgeInsets.all(16),
@@ -86,12 +84,11 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen> {
                   const SizedBox(height: 32),
                   _buildFormFields(),
                   const SizedBox(height: 32),
-                  _buildSaveButton(provider),
+                  _buildSaveButton(),
                 ],
               ),
             ),
           );
-        },
       ),
     );
   }
@@ -207,26 +204,37 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen> {
     );
   }
 
-  Widget _buildSaveButton(UserProvider provider) {
+  Widget _buildSaveButton() {
     return SizedBox(
       width: double.infinity,
       child: ElevatedButton(
-        onPressed: provider.isLoading || !_hasChanges ? null : _saveProfile,
+        onPressed: !_hasChanges ? null : _saveProfile,
         style: ElevatedButton.styleFrom(
           backgroundColor: ThemeColors.primary,
           foregroundColor: Colors.white,
           padding: const EdgeInsets.symmetric(vertical: 16),
         ),
-        child: provider.isLoading
-            ? const SizedBox(
-                height: 20,
-                width: 20,
-                child: CircularProgressIndicator(
-                  strokeWidth: 2,
-                  valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
-                ),
-              )
-            : const Text('변경사항 저장'),
+        child: ref.watch(userProvider).when(
+          data: (state) => state.isLoading
+              ? const SizedBox(
+                  height: 20,
+                  width: 20,
+                  child: CircularProgressIndicator(
+                    strokeWidth: 2,
+                    valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+                  ),
+                )
+              : const Text('변경사항 저장'),
+          loading: () => const SizedBox(
+            height: 20,
+            width: 20,
+            child: CircularProgressIndicator(
+              strokeWidth: 2,
+              valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+            ),
+          ),
+          error: (error, stack) => const Text('변경사항 저장'),
+        ),
       ),
     );
   }
@@ -250,23 +258,25 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen> {
       updatedAt: DateTime.now(),
     );
 
-    final provider = context.read<UserProvider>();
-    await provider.updateUserProfile(updatedProfile);
+    await ref.read(userProvider.notifier).updateUserProfile(updatedProfile);
 
     if (mounted) {
-      if (provider.error == null) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('프로필이 성공적으로 업데이트되었습니다')),
-        );
-        Navigator.of(context).pop();
-      } else {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('업데이트 실패: ${provider.error}'),
-            backgroundColor: Colors.red,
-          ),
-        );
-      }
+      final userState = ref.read(userProvider);
+      userState.whenData((state) {
+        if (state.error == null) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('프로필이 성공적으로 업데이트되었습니다')),
+          );
+          Navigator.of(context).pop();
+        } else {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text('업데이트 실패: ${state.error}'),
+              backgroundColor: Colors.red,
+            ),
+          );
+        }
+      });
     }
   }
 }
